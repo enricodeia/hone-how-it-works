@@ -9,3 +9,4 @@ verify/review/
 
 # reference frames of the original site: design input only, not published
 source-assets/
+.vercel

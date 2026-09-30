@@ -10,7 +10,7 @@
     "preview": "vite preview --port 5231",
     "figure": "python3 tools/build_figure.py",
     "shots": "node verify/shots.mjs",
-    "deploy": "vite build && gh-pages -d dist --nojekyll"
+    "deploy": "BASE_PATH=/hone-how-it-works/ vite build && gh-pages -d dist --nojekyll"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.3.1",
