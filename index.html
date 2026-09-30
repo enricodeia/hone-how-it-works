@@ -9,9 +9,9 @@
   <link rel="preload" href="/hone-how-it-works/fonts/AshcroftTest-Medium.otf" as="font" type="font/otf" crossorigin />
   <link rel="preload" href="/hone-how-it-works/data/figure.bin" as="fetch" crossorigin />
   <!-- inline so it applies before the stylesheet is injected: nothing half-built flashes before boot -->
-  <style>html:not(.is-ready) .wide,html:not(.is-ready) .bg__photo,html:not(.is-ready) .after{visibility:hidden}</style>
-  <script type="module" crossorigin src="/hone-how-it-works/assets/index-fuAr6_G2.js"></script>
-  <link rel="stylesheet" crossorigin href="/hone-how-it-works/assets/index-CKl-ysxI.css">
+  <style>html:not(.is-ready) .wide,html:not(.is-ready) .bg__photo,html:not(.is-ready) .after,html:not(.is-ready) .rail{visibility:hidden}</style>
+  <script type="module" crossorigin src="/hone-how-it-works/assets/index-CBY8CHj5.js"></script>
+  <link rel="stylesheet" crossorigin href="/hone-how-it-works/assets/index-CgjJeE9H.css">
 </head>
 <body>
   <main>
@@ -38,12 +38,33 @@
             <i class="blob" style="--x:370;--y:185;--r:470;--c:#c3ddf4"></i>
             <i class="blob" style="--x:1290;--y:510;--r:600;--c:#dbeacf"></i>
           </div>
+          <!-- split layout (key 2): tints sit behind the left column -->
+          <div class="bg__set" data-bg="v2start">
+            <i class="blob" style="--x:40;--y:900;--r:520;--c:#f4dede"></i>
+          </div>
+          <div class="bg__set" data-bg="v2pink">
+            <i class="blob" style="--x:90;--y:380;--r:560;--c:#efc4c4"></i>
+            <i class="blob" style="--x:560;--y:660;--r:520;--c:#efc9c9"></i>
+            <i class="blob blob--soft" style="--x:470;--y:40;--r:420;--c:#f6dfdf"></i>
+          </div>
+          <div class="bg__set" data-bg="v2phone">
+            <i class="blob" style="--x:400;--y:470;--r:430;--c:#e2eed9"></i>
+            <i class="blob blob--soft" style="--x:620;--y:-40;--r:400;--c:#f6e0e0"></i>
+          </div>
+          <div class="bg__set" data-bg="v2build">
+            <i class="blob" style="--x:400;--y:-80;--r:600;--c:#edf4e8"></i>
+          </div>
+          <div class="bg__set" data-bg="v2become">
+            <i class="blob" style="--x:170;--y:170;--r:440;--c:#c7def4"></i>
+            <i class="blob" style="--x:640;--y:560;--r:480;--c:#dcebd1"></i>
+          </div>
           <div class="bg__photo" data-bg="photo"><img src="/hone-how-it-works/assets/main-bg.webp" alt="" decoding="async" /></div>
         </div>
 
         <!-- 1 · layers under the particles: the glass card (step 5) and the phone -->
         <div class="wide wide--under">
          <div class="center">
+          <div class="panel" data-panel aria-hidden="true"><img src="/hone-how-it-works/assets/main-bg.webp" alt="" decoding="async" /></div>
           <div class="glass" data-glass aria-hidden="true">
             <p class="glass__title">METABOLIC HEALTH</p>
             <div class="glass__pills">
@@ -211,6 +232,45 @@
 
           <a class="cta" href="#after" data-cta>Learn more</a>
         </div>
+      </div>
+
+      <!-- split layout (key 2): the right column scrolls; each block is pinned to a moment of the animation -->
+      <div class="rail" data-railcol>
+        <i class="rail__line" data-rail-line></i>
+        <article class="rail__block" data-block="0">
+          <span class="rail__badge">01</span><i class="rail__node"></i>
+          <p class="rail__eyebrow">HOW IT WORKS</p>
+          <h2 class="rail__title">Baseline</h2>
+          <p class="rail__text">Get a complete diagnostic picture with lab <br>bloodwork, imaging, and validated self-assessments.</p>
+        </article>
+        <article class="rail__block rail__block--more" data-block="1">
+          <p class="rail__text">Hone tests across 12+ categories, including <br>hormones, metabolic health, cardiovascular risk, <br>thyroid function, and cognitive markers, so nothing is <br>missed from the start.</p>
+          <ul class="rail__list"><li>100+ health markers</li><li>DEXA, MRI, and DNA testing (additional cost)</li><li>HSA/FSA eligible</li></ul>
+        </article>
+        <article class="rail__block" data-block="2">
+          <span class="rail__badge">02</span><i class="rail__node"></i>
+          <p class="rail__eyebrow">HOW IT WORKS</p>
+          <h2 class="rail__title">Blueprint</h2>
+          <p class="rail__text">Discuss your results with a board-certified physician, <br>or review them in Hone’s easy-to-use dashboard.</p>
+        </article>
+        <article class="rail__block rail__block--more" data-block="3">
+          <p class="rail__text">Understand what the numbers mean for you <br>specifically when combined with your health history <br>and any existing symptoms.</p>
+          <ul class="rail__list"><li>Private 1:1 video consult</li><li>Data-driven insights</li><li>Secure patient portal</li></ul>
+        </article>
+        <article class="rail__block" data-block="4">
+          <span class="rail__badge">03</span><i class="rail__node"></i>
+          <p class="rail__eyebrow">HOW IT WORKS</p>
+          <h2 class="rail__title">Build</h2>
+          <p class="rail__text">Your physician develops a personalized protocol, <br>which may include prescription medications, <br>supplements, or both, sequenced to fit your body <br>and your goals. Care is coordinated across <br>therapeutic categories, so nothing is treated in <br>isolation.</p>
+          <ul class="rail__list"><li>Personalized treatment for specific symptoms</li><li>Designed to catch risk factors early</li><li>Full range of prescription medications and supplements</li></ul>
+        </article>
+        <article class="rail__block" data-block="5">
+          <span class="rail__badge">04</span><i class="rail__node"></i>
+          <p class="rail__eyebrow">HOW IT WORKS</p>
+          <h2 class="rail__title">Become</h2>
+          <p class="rail__text">Retest on a regular cadence. Your physician adjusts <br>your protocol as your results change. This isn’t a <br>subscription that runs on autopilot, it’s ongoing care <br>that responds to what your body’s actually doing.</p>
+          <ul class="rail__list"><li>Retesting every 3–6 months</li><li>Unlimited messages with your care team</li><li>Additional labs available anytime</li></ul>
+        </article>
       </div>
     </section>
 
