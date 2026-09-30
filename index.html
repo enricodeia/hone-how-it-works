@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hone — How it works</title>
+  <link rel="preload" href="/fonts/AshcroftTest-Regular.otf" as="font" type="font/otf" crossorigin />
+  <link rel="preload" href="/fonts/FriedelProTrial-Regular.otf" as="font" type="font/otf" crossorigin />
+  <link rel="preload" href="/data/figure.bin" as="fetch" crossorigin />
+</head>
+<body>
+  <main>
+    <section class="hiw" id="how-it-works" aria-label="How it works">
+      <div class="hiw__stage" data-stage>
+
+        <!-- 0 · background: tinted blobs per step, then the photo -->
+        <div class="bg" aria-hidden="true">
+          <div class="bg__set" data-bg="blue">
+            <i class="blob" style="--x:60;--y:880;--r:720;--c:#b3d3f1"></i>
+            <i class="blob" style="--x:1460;--y:20;--r:700;--c:#c3dcf4"></i>
+            <i class="blob blob--soft" style="--x:1620;--y:430;--r:360;--c:#e3eefa"></i>
+          </div>
+          <div class="bg__set" data-bg="pink">
+            <i class="blob" style="--x:210;--y:170;--r:560;--c:#eeb9b7"></i>
+            <i class="blob" style="--x:1420;--y:760;--r:540;--c:#e8bdbc"></i>
+            <i class="blob blob--soft" style="--x:40;--y:560;--r:380;--c:#e8cfcf"></i>
+          </div>
+          <div class="bg__set" data-bg="sky">
+            <i class="blob" style="--x:1250;--y:500;--r:520;--c:#b6d4f1"></i>
+            <i class="blob" style="--x:160;--y:470;--r:520;--c:#d6e6f6"></i>
+            <i class="blob blob--soft" style="--x:760;--y:-40;--r:420;--c:#e6f0fa"></i>
+          </div>
+          <div class="bg__set" data-bg="become">
+            <i class="blob" style="--x:370;--y:185;--r:470;--c:#c3ddf4"></i>
+            <i class="blob" style="--x:1290;--y:560;--r:600;--c:#dbeacf"></i>
+          </div>
+          <div class="bg__photo" data-bg="photo"><img src="/assets/main-bg.webp" alt="" decoding="async" /></div>
+        </div>
+
+        <!-- 1 · layers under the particles: the glass card (step 5) and the phone -->
+        <div class="wide wide--under">
+         <div class="center">
+          <div class="glass" data-glass>
+            <p class="glass__title">METABOLIC HEALTH</p>
+            <div class="glass__pills">
+              <span class="pill pill--glass">All</span>
+              <span class="pill pill--glass"><i class="tri tri--down tri--red"></i>Metabolic</span>
+              <span class="pill pill--glass"><i class="tri tri--down tri--red"></i>Gut</span>
+              <span class="pill pill--glass"><i class="tri tri--up tri--blue"></i>Brain</span>
+            </div>
+            <i class="glass__bloom" aria-hidden="true"></i>
+            <div class="anchor anchor--card" data-anchor="card"></div>
+            <div class="glass__bar"><i class="glass__bar-g"></i><i class="glass__bar-b"></i></div>
+            <div class="glass__legend">
+              <span><i class="tri tri--down tri--red"></i>Out of range <em>10/10</em></span>
+              <span><i class="tri tri--right tri--green"></i>In Range <em>2/10</em></span>
+              <span><i class="tri tri--up tri--blue"></i>Optimal <em>2/10</em></span>
+            </div>
+          </div>
+
+          <div class="phone" data-phone>
+            <div class="phone__screen" data-screen>
+              <div class="phone__content" data-phone-content>
+                <header class="app-head">
+                  <span class="app-head__menu"><i></i><i></i></span>
+                  <span class="app-head__logo">HONE</span>
+                  <span class="app-head__icon app-head__icon--mail" data-fa="envelope"><b></b></span>
+                  <span class="app-head__icon app-head__icon--cart" data-fa="cart"></span>
+                </header>
+                <div class="app-fade" data-app-ui>
+                  <h3 class="app-title">My Health</h3>
+                  <div class="app-pills">
+                    <span class="pill pill--dark">All</span>
+                    <span class="pill"><i class="tri tri--down tri--red"></i>Metabolic</span>
+                    <span class="pill"><i class="tri tri--down tri--red"></i>Gut</span>
+                    <span class="pill"><i class="tri tri--up tri--blue"></i>Brain</span>
+                  </div>
+                </div>
+                <div class="anchor anchor--phone" data-anchor="phone"></div>
+                <div class="app-fade app-bio" data-app-ui>
+                  <p class="app-bio__row"><span class="app-bio__label">Biological Age</span><span class="app-bio__pill">43 years</span></p>
+                  <p class="app-bio__delta"><i class="tri tri--up tri--blue"></i>8 years younger</p>
+                </div>
+                <div class="app-video" data-video><img src="/assets/doctor.webp" alt="Hone physician on a video consultation" decoding="async" /></div>
+                <div class="app-reco">
+                  <h3 class="app-reco__title">My recommendations</h3>
+                  <p class="app-reco__text">Based on your biomarker results and<br>the initial consultation with the Hone<br>physician we suggest a combination<br>of medication, supplements, and<br>lifestyle recommendations.</p>
+                  <div class="reco-card" data-slot="0">
+                    <img src="/assets/progesterone.png" alt="" />
+                    <p class="reco-card__name">Progesterone</p>
+                    <p class="reco-card__kind">Capsules</p>
+                  </div>
+                  <div class="reco-card" data-slot="1">
+                    <img src="/assets/testosterone.webp" alt="" />
+                    <p class="reco-card__name">Testosterone</p>
+                    <p class="reco-card__kind">Injection</p>
+                  </div>
+                </div>
+              </div>
+              <div class="phone__status">
+                <span class="phone__time">9:41</span>
+                <span class="phone__island"></span>
+                <svg class="phone__sig" viewBox="0 0 17 11" aria-hidden="true"><rect x="0" y="7" width="3" height="4" rx="0.8"/><rect x="4.6" y="5" width="3" height="6" rx="0.8"/><rect x="9.2" y="2.6" width="3" height="8.4" rx="0.8"/><rect x="13.8" y="0" width="3" height="11" rx="0.8"/></svg>
+                <svg class="phone__wifi" viewBox="0 0 15 11" aria-hidden="true"><path d="M7.5 2.3c2.2 0 4.2.85 5.7 2.25l1.1-1.13A9.6 9.6 0 0 0 7.5.7 9.6 9.6 0 0 0 .7 3.42L1.8 4.55A8 8 0 0 1 7.5 2.3Zm0 3.2c1.3 0 2.5.5 3.4 1.33l1.12-1.14A6.4 6.4 0 0 0 7.5 3.9c-1.75 0-3.35.7-4.52 1.8L4.1 6.83A4.8 4.8 0 0 1 7.5 5.5Zm0 3.2c-.52 0-1 .2-1.35.52L7.5 10.6l1.35-1.38A1.97 1.97 0 0 0 7.5 8.7Z"/></svg>
+                <svg class="phone__bat" viewBox="0 0 26 12" aria-hidden="true"><rect x="0.6" y="0.6" width="22" height="10.8" rx="3.2" fill="none" stroke="currentColor" stroke-opacity="0.4" stroke-width="1.1"/><rect x="2.2" y="2.2" width="18.8" height="7.6" rx="1.9"/><path d="M24.2 4v4c.8-.3 1.3-1.1 1.3-2s-.5-1.7-1.3-2Z" fill-opacity="0.45"/></svg>
+              </div>
+              <span class="phone__home"></span>
+            </div>
+          </div>
+         </div>
+        </div>
+
+        <!-- 2 · the particle man + ambient dust -->
+        <canvas class="gl" data-gl aria-hidden="true"></canvas>
+
+        <!-- 3 · layers over the particles -->
+        <div class="wide wide--over">
+          <div class="markers" data-markers aria-hidden="true"></div>
+         <div class="center">
+          <div class="anchor anchor--hero" data-anchor="hero"></div>
+
+          <div class="float float--blood" data-par="0.6">
+            <div class="gcard gcard--blood" data-card="blood">
+              <img src="/assets/blood.webp" alt="Hone blood sample tube" />
+              <p class="gcard__name">Blood sample</p>
+            </div>
+          </div>
+
+          <div class="float float--apob" data-par="1">
+            <div class="gcard gcard--apob" data-card="apob">
+              <p class="apob__label">ApoB</p>
+              <p class="apob__value"><span class="apob__num" data-apob-num>155</span><span class="apob__unit" data-apob-unit>mg/dL</span><i class="apob__arrow" data-apob-arrow></i></p>
+              <div class="apob__bar">
+                <i class="apob__track"></i>
+                <i class="apob__fill" data-apob-fill></i>
+                <i class="apob__gap" data-apob-gap="a"></i>
+                <i class="apob__gap" data-apob-gap="b"></i>
+                <i class="apob__gap" data-apob-gap="c"></i>
+                <i class="apob__mark" data-apob-mark><b></b></i>
+              </div>
+            </div>
+          </div>
+
+          <div class="float float--prog" data-par="0.8" data-fly>
+            <div class="pcard" data-product="prog">
+              <img src="/assets/progesterone.png" alt="" />
+              <p class="pcard__name">Progesterone</p>
+              <p class="pcard__kind">Capsules</p>
+            </div>
+          </div>
+          <div class="float float--testo" data-par="1.1">
+            <div class="pcard" data-product="testo">
+              <img src="/assets/testosterone.webp" alt="" />
+              <p class="pcard__name">Testosterone</p>
+              <p class="pcard__kind">Injection</p>
+            </div>
+          </div>
+          <div class="float float--estra" data-par="0.9">
+            <div class="pcard" data-product="estra">
+              <img src="/assets/estradiol.webp" alt="" />
+              <p class="pcard__name">Estradiol</p>
+              <p class="pcard__kind">Cream</p>
+            </div>
+          </div>
+         </div>
+
+          <div class="copy" data-copy>
+            <p class="copy__eyebrow">HOW IT WORKS</p>
+            <div class="copy__stack">
+              <div class="copy__block" data-step="0">
+                <h2 class="copy__title"><span class="ln"><span>Design your health</span></span></h2>
+                <p class="copy__text"><span class="ln"><span>Every life stage offers unique opportunities for</span></span><span class="ln"><span>growth and transformation. At Hone we help</span></span><span class="ln"><span>people take control and feel their best by focussing</span></span><span class="ln"><span>on the potential within each individual.</span></span></p>
+              </div>
+              <div class="copy__block" data-step="1">
+                <h2 class="copy__title"><span class="ln"><span>Baseline</span></span></h2>
+                <p class="copy__text"><span class="ln"><span>We test 100+ health markers to</span></span><span class="ln"><span>understand where you’re starting, and</span></span><span class="ln"><span>examine 1000+ conditions.</span></span></p>
+              </div>
+              <div class="copy__block" data-step="2">
+                <h2 class="copy__title"><span class="ln"><span>Blueprint</span></span></h2>
+                <p class="copy__text"><span class="ln"><span>Concierge licensed MDs help you create</span></span><span class="ln"><span>a tailored treatment plan based around</span></span><span class="ln"><span>your specific health goals.</span></span></p>
+              </div>
+              <div class="copy__block" data-step="3">
+                <h2 class="copy__title"><span class="ln"><span>Build</span></span></h2>
+                <p class="copy__text"><span class="ln"><span>Your protocol is carefully curated, and</span></span><span class="ln"><span>supplements or medications get sent</span></span><span class="ln"><span>directly to your door, with ongoing</span></span><span class="ln"><span>support at any time.</span></span></p>
+              </div>
+              <div class="copy__block" data-step="4">
+                <h2 class="copy__title"><span class="ln"><span>Become</span></span></h2>
+                <p class="copy__text"><span class="ln"><span>Hone’s care team partners with you to</span></span><span class="ln"><span>rerun tests or adjust your stack, so you</span></span><span class="ln"><span>stay on top of any changes and get to</span></span><span class="ln"><span>live and age as your best self.</span></span></p>
+              </div>
+            </div>
+          </div>
+
+          <nav class="steps" data-steps aria-label="Steps">
+            <div class="steps__labels">
+              <p class="steps__label" data-label="0"><span>Baseline</span><span>01</span></p>
+              <p class="steps__label" data-label="1"><span>Blueprint</span><span>02</span></p>
+              <p class="steps__label" data-label="2"><span>Build</span><span>03</span></p>
+              <p class="steps__label" data-label="3"><span>Become</span><span>04</span></p>
+            </div>
+            <div class="steps__rail" data-rail>
+              <i class="steps__dot" data-dot="0"></i>
+              <i class="steps__dot" data-dot="1"></i>
+              <i class="steps__dot" data-dot="2"></i>
+              <i class="steps__dot" data-dot="3"></i>
+            </div>
+          </nav>
+
+          <a class="cta" href="#after" data-cta>Learn more</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="after" id="after">
+      <div class="after__inner">
+        <p class="copy__eyebrow">NEXT</p>
+        <h2 class="after__title">Your health, by design.</h2>
+        <p class="after__text">A white section to land on once the story ends.</p>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

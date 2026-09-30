@@ -1,0 +1,48 @@
+# Hone · How it works
+
+A sticky scroll section rebuilt from nine reference frames (`source-assets/01.png` … `09.png`).
+A man made of round particles composes himself, looks at the cursor and scatters on hover, then
+travels through **Baseline → Blueprint → Build → Become** on one GSAP ScrollTrigger timeline.
+
+**Live:** https://enricodeia.github.io/hone-how-it-works/
+
+```bash
+npm install        # needs the Font Awesome Pro token in ~/.npmrc
+npm run dev        # http://localhost:5230
+npm run deploy     # build + publish dist/ to the gh-pages branch (GitHub Pages)
+npm run shots      # screenshots of the 9 frames -> verify/out/frame-0N.png (dev server running)
+python3 verify/compare.py   # reference | build side by side -> verify/out/cmp-0N.png
+npm run figure     # rebuild the particle man from source-assets/01.png
+```
+
+Dev keys: `1`–`9` jump to each reference frame, `O` toggles the reference overlay at 50%.
+
+## How it is put together
+
+| Layer (bottom → top) | What |
+|---|---|
+| `.bg` | tinted blob sets per step (blue, pink, sky, become) and the Main bg photo |
+| `.wide--under` | the glass "Metabolic Health" card and the iPhone mockup (DOM) |
+| `canvas.gl` | three.js: the particle man + the ambient dust |
+| `.wide--over` | Blood / ApoB / product cards, body markers, copy, step indicator, CTA |
+
+- **Reference px.** Everything inside `.wide` is written in the px of the 1506 × 845 viewport the
+  frames were captured at, and scaled by `--u`, so the layout lands on the screenshots at any size.
+- **The particle man** (`tools/build_figure.py`) is extracted from `01.png`: every dot of the
+  figure (position, size, tone), merged clusters split with k-means, plus a density-matched fill
+  layer for the denser later states. The silhouette is inflated into a 2.5D bust (row ellipses
+  capped by a distance field, a nose ridge) so the head can turn toward the cursor with real depth.
+- **`src/figure.js`**: CPU side does the head + body look-at and a spring/repel simulation (particles
+  move away from the pointer and spring back); GPU side does the assemble/scatter, the colour states
+  (grey → red rims → green left rim → white/green glow), round points and the rounded-rect clip to the
+  phone screen. The figure's placement follows DOM anchors: hero → phone slot → glass card.
+- **`src/timeline.js`**: one timeline, 1 unit = 100vh of scroll. `FRAMES` holds the timeline time of
+  each reference frame. The phone starts scaled so its figure slot sits exactly on the hero figure,
+  then zooms out; the Progesterone card flies into the recommendations slot and hands off with a
+  crossfade; Become re-assembles the body and settles ApoB from 155 (red, 74%) to 70 (green, 33%).
+- **Hooks**: `window.__hone = { tl, st, scene, state, lenis, T, FRAMES, scrollToTime(t), frame(i) }`,
+  `scene.still = true` freezes the look-at for deterministic screenshots.
+
+Fonts: Ashcroft Test (serif, every title and the phone UI serif) and Friedel Pro Trial (text).
+Icons in the phone header: Font Awesome Pro Light. `source-assets/` holds the reference frames and
+is only read in dev (overlay) and by the figure builder.
