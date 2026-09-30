@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+
+# local verification output (screenshots, review runs) — regenerate with npm run shots
+verify/out/
+verify/review/
+
+# reference frames of the original site: design input only, not published
+source-assets/
