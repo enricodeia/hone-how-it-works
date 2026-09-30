@@ -11,9 +11,9 @@ await p.waitForFunction(() => window.__hone && document.documentElement.classLis
 await p.evaluate(() => { window.__hone.scene.still = true }); await p.waitForTimeout(3400)
 const shots = [
   ['blood', [1.0, 1.1, 1.2, 1.3, 1.45, 1.6], { x: 440, y: 210, width: 220, height: 300 }],
-  ['prog', [5.62, 5.72, 5.82, 5.95, 6.1, 6.4], { x: 430, y: 290, width: 215, height: 265 }],
-  ['testo', [5.75, 5.85, 5.95, 6.1, 6.25, 6.5], { x: 860, y: 115, width: 215, height: 265 }],
-  ['fly', [7.3, 7.55, 7.8, 8.0, 8.2, 8.6], { x: 420, y: 280, width: 500, height: 440 }],
+  ['prog', [5.85, 5.95, 6.05, 6.2, 6.35, 6.7], { x: 430, y: 290, width: 215, height: 265 }],
+  ['testo', [5.98, 6.08, 6.2, 6.35, 6.5, 6.8], { x: 860, y: 115, width: 215, height: 265 }],
+  ['fly', [7.65, 7.9, 8.15, 8.35, 8.6, 9.0], { x: 420, y: 280, width: 500, height: 440 }],
 ]
 for (const [name, ts, clip] of shots) {
   const files = []

@@ -80,33 +80,36 @@ const figureVert = /* glsl */ `
     float rimA = smoothstep(0.35, 0.92, rim);
     float rimT = smoothstep(0.62, 1.0, rim);
     float side = clamp(nx, -1.0, 1.0);                 // -1 left half .. +1 right half
-    float headRight = smoothstep(0.0, 0.75, side) * head;
     float topEdge = smoothstep(0.15, -0.7, ny) * (1.0 - head);
     float fadeB = smoothstep(0.64, 1.0, v);
     float lowGrey = smoothstep(0.46, 0.8, v) * (1.0 - rimA * 0.6);
 
-    float redAmt = rimA * (0.35 + 0.65 * n1) + headRight * (0.35 + 0.5 * rimA) + topEdge * rimA * 0.6
-                 + smoothstep(0.35, 0.95, side) * 0.35 * n2;
+    float redAmt = rimA * (0.6 + 0.7 * n1) + topEdge * smoothstep(0.2, 0.8, rim) * 0.6;
     redAmt = clamp(redAmt, 0.0, 1.0);
     vec3 innerR = mix(vec3(0.43, 0.20, 0.185), vec3(0.30, 0.18, 0.17), n2);
     vec3 redCol = mix(innerR, vec3(0.86, 0.31, 0.26), redAmt);
+    redCol = mix(redCol, vec3(1.0), (1.0 - tone) * 0.35);
     float greenL = smoothstep(-0.3, -0.8, side) * smoothstep(0.38, 0.52, v) * smoothstep(0.45, 0.85, rim) * (1.0 - head);
     redCol = mix(redCol, vec3(0.30, 0.55, 0.26), greenL);
     redCol = mix(redCol, vec3(0.40, 0.37, 0.37), lowGrey * 0.7);
     redCol = mix(redCol, vec3(0.60, 0.55, 0.55), fadeB * 0.85);
 
     float leftSide = smoothstep(0.25, -0.5, side);
-    float gAmt = smoothstep(0.12, 0.7, rim) * leftSide * (0.8 + 0.5 * n1) + leftSide * 0.22 * n2 + topEdge * rimA * 0.4 * leftSide;
+    float neckM = smoothstep(0.24, 0.30, v) * (1.0 - smoothstep(0.36, 0.41, v));
+    float gAmt = (smoothstep(0.12, 0.7, rim) * leftSide * (0.8 + 0.5 * n1) + leftSide * 0.22 * n2
+                 + topEdge * smoothstep(0.1, 0.6, rim) * 0.9 * leftSide) * (1.0 - 0.85 * neckM)
+               + head * smoothstep(-0.15, -0.6, side) * (1.0 - smoothstep(0.14, 0.24, v)) * (0.2 + 0.3 * n1);
     gAmt = clamp(gAmt, 0.0, 1.0);
     vec3 innerG = mix(vec3(0.27), vec3(0.40), n2);
-    vec3 greenCol = mix(innerG, vec3(0.34, 0.62, 0.27), gAmt);
+    vec3 greenCol = mix(innerG, vec3(0.29, 0.50, 0.30), gAmt);
     greenCol = mix(greenCol, vec3(0.64, 0.57, 0.57), fadeB * 0.8);
 
-    float centre = 1.0 - smoothstep(22.0, 95.0, abs(position.x));
+    float centre = 1.0 - smoothstep(35.0, 120.0, abs(position.x));
     float core = (1.0 - rimA) * centre * smoothstep(0.16, 0.3, v) * (1.0 - smoothstep(0.46, 0.7, v));
-    vec3 glowG = mix(vec3(0.55, 0.87, 0.44), vec3(0.74, 0.96, 0.62), n1);
-    vec3 glowCol = mix(glowG, vec3(1.0, 1.0, 0.98), clamp(core * 1.8 + (1.0 - rimA) * 0.18 * n2, 0.0, 1.0));
-    glowCol = mix(glowCol, vec3(0.88, 0.88, 1.0), smoothstep(0.5, 0.9, v) * smoothstep(0.0, 0.6, side) * 0.6);
+    vec3 glowG = mix(vec3(0.55, 0.85, 0.52), vec3(0.74, 0.95, 0.70), n1);
+    vec3 glowCol = mix(glowG, vec3(1.0, 1.0, 0.98), clamp(core * 1.8 + step(0.64, n2) * 0.9 * (1.0 - 0.7 * leftSide), 0.0, 1.0));
+    glowCol = mix(glowCol, vec3(0.86, 0.86, 1.0), smoothstep(0.45, 0.8, v) * smoothstep(-0.1, 0.5, side) * 0.75);
+    glowCol = mix(glowCol, vec3(0.2, 0.21, 0.17), centre * smoothstep(0.5, 0.66, v) * (1.0 - rimA) * 0.7);
 
     vec3 col = design;
     col = mix(col, redCol, uRed);
@@ -143,14 +146,14 @@ const figureFrag = /* glsl */ `
     float d = length(c) * 2.0;
     float aa = clamp(1.6 / max(vPx, 1.0), 0.03, 0.45);   // ~0.8 device px feather: crisp at any size
     float core = 1.0 - smoothstep(vCore - aa, vCore, d);
-    float halo = exp(-d * d * 5.0) * vGlow * 0.55;
+    float halo = exp(-d * d * 5.0) * vGlow * 0.85;
     float a = max(core, halo) * vAlpha;
     if (uClipOn > 0.001) {
       float sd = roundRect(gl_FragCoord.xy - uClip.xy, uClip.zw, uClipR);
       a *= mix(1.0, 1.0 - smoothstep(-1.0, 1.0, sd), uClipOn);
     }
     if (a < 0.003) discard;
-    vec3 col = vColor + vec3(0.25) * halo * (1.0 - core);
+    vec3 col = min(vColor + vec3(0.25) * halo * (1.0 - core), vec3(1.0));
     gl_FragColor = vec4(col * a, a);
   }
 `
@@ -341,23 +344,23 @@ export class FigureScene {
     const rnd = mulberry(29)
     const P = [], S = [], SL = [], RK = []
     const push = (x, y, z, s) => { P.push(x, y, z); S.push(s); SL.push(rnd()); RK.push(rnd()) }
-    const kind = () => (rnd() < 0.2 ? 1 : 0)                      // 1 = a slightly larger circle
-    const sizeFor = (k) => (k ? 2.5 + rnd() * 1.5 : 1.05 + rnd() * 1.25)
+    const kind = () => (rnd() < 0.1 ? 1 : 0)                      // 1 = a slightly larger circle
+    const sizeFor = (k) => (k ? 1.9 + rnd() * 0.7 : 0.95 + rnd() * 0.55)
     // concentric, patchy rings around the stage centre
-    const rings = [300, 355, 420, 495, 580, 675, 780, 900]
+    const rings = [470, 525, 590, 660, 740, 830, 930]
     rings.forEach((R, ri) => {
-      const n = Math.round(R * 0.85)
+      const n = Math.round(R * 2.2)
       const ph = rnd() * 10, k = 3 + Math.floor(rnd() * 4)
       for (let i = 0; i < n; i++) {
         const a = rnd() * Math.PI * 2
         if (Math.sin(a * k + ph) + Math.sin(a * (k + 2) - ph * 0.7) < rnd() * 2.6 - 1.4) continue
-        const r = R + (rnd() - 0.5) * 34
+        const r = R + (rnd() - 0.5) * 14
         const kk = kind()
-        push(Math.cos(a) * r * 1.02, Math.sin(a) * r * 0.8 - 20, (rnd() - 0.5) * 380 + ri * 6, sizeFor(kk))
+        push(Math.cos(a) * r * 1.02, Math.sin(a) * r * 0.8 - 20, (rnd() - 0.5) * 120 + ri * 6, sizeFor(kk))
       }
     })
     // loose scatter across the frame
-    for (let i = 0; i < 900; i++) {
+    for (let i = 0; i < 300; i++) {
       const kk = kind()
       push((rnd() - 0.5) * 1560, (rnd() - 0.5) * 900, (rnd() - 0.5) * 300, sizeFor(kk))
     }
@@ -500,7 +503,8 @@ export class FigureScene {
     if (clipOn > 0) {
       const sr = this.screenEl.getBoundingClientRect()
       const d = this.dpr
-      FU.uClip.value.set((sr.left - ox + sr.width / 2) * d, (H - (sr.top - oy + sr.height / 2)) * d, (sr.width / 2) * d, (sr.height / 2) * d)
+      const top = (sr.width / 298) * 38.3            // island bottom: 10.4 + 27.9 screen px
+      FU.uClip.value.set((sr.left - ox + sr.width / 2) * d, (H - (sr.top - oy + (sr.height + top) / 2)) * d, (sr.width / 2) * d, ((sr.height - top) / 2) * d)
       FU.uClipR.value = (sr.width / 298) * 45.5 * d
     }
 
@@ -549,7 +553,7 @@ export class FigureScene {
     const bcy = Math.cos(L.by), bsy = Math.sin(L.by), bcp = Math.cos(L.bp), bsp = Math.sin(L.bp)
     const nx = this.neck[0], ny = this.neck[1]
     const mlx = (this.px - r.cx) / s, mly = (r.cy - this.py) / s
-    const active = p.inside && this.U.intro > 0.6
+    const active = p.inside && this.U.intro > 0.6 && this.U.scatter < 0.05
     const strength = active ? (0.6 + Math.min(p.speed / 1400, 1) * 1.1) : 0
     const R = REPEL_R, R2 = R * R
     const damp = Math.exp(-dt * DAMP)
@@ -594,13 +598,16 @@ export class FigureScene {
 
   #placeMarkers(r, s) {
     const v = this.#tmp, out = [0, 0, 0], W = this.w, H = this.h, u = this.u
-    for (const m of this.markers) {
+    // in Become the body sits a little higher in the frame: five markers ride up with it
+    const BECOME_DY = [0, 15.7, 15.7, 15.7, 0, 15.7, 15.7]
+    this.markers.forEach((m, i) => {
       const [x, y, z] = m.p
-      this.#rotate(x, y, z + 6, this.headW(y), out)
-      v.set(out[0] * s + this.group.position.x, out[1] * s + this.group.position.y, out[2] * s)
+      this.#rotate(x, y + BECOME_DY[i] * this.U.green, z + 6, this.headW(y), out)
+      // projected on the z = 0 plane: the rotation still moves them, perspective does not push them outward
+      v.set(out[0] * s + this.group.position.x, out[1] * s + this.group.position.y, 0)
       v.project(this.camera)
       const px = (v.x + 1) / 2 * W, py = (1 - v.y) / 2 * H
       m.el.style.translate = `${px / u}px ${py / u}px`
-    }
+    })
   }
 }

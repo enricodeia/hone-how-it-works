@@ -23,7 +23,8 @@ let unit = 1
 function layout() {
   const vw = html.clientWidth, vh = window.innerHeight
   const portrait = vw / vh < 0.9
-  unit = portrait ? vw / 560 : Math.min(vw / REF_W, vh / REF_H)
+  // portrait: fit a 560-wide column, but never taller than ~1000 ref px (tablets, near-square windows)
+  unit = portrait ? Math.min(vw / 560, vh / 1000) : Math.min(vw / REF_W, vh / REF_H)
   html.style.setProperty('--u', unit)
   html.style.setProperty('--fw', vw / unit)
   html.style.setProperty('--fh', vh / unit)
@@ -69,9 +70,10 @@ async function boot() {
     PAR: { on: 1, prog: 1 },
   }
   const { tl, st } = buildTimeline({ root, scene, state })
+  if (reduced) { state.PAR.on = 0; scene.still = true }
 
   // ---------------------------------------------------------------- smooth scroll
-  const lenis = new Lenis({ lerp: 0.095, smoothWheel: true, wheelMultiplier: 0.9 })
+  const lenis = new Lenis({ lerp: reduced ? 1 : 0.095, smoothWheel: !reduced, wheelMultiplier: 0.9 })
   lenis.on('scroll', ScrollTrigger.update)
   gsap.ticker.add((time) => lenis.raf(time * 1000))
   gsap.ticker.lagSmoothing(0)
@@ -84,6 +86,13 @@ async function boot() {
     mouse.y = e.clientY / window.innerHeight - 0.5
   }, { passive: true })
   html.addEventListener('pointerleave', () => scene.leavePointer())
+  // a finger lifts: stop aiming the look-at and the parallax at the last touch point
+  const releaseTouch = (e) => {
+    if (e.pointerType !== 'touch') return
+    scene.leavePointer(); scene.pointer.has = false; mouse.x = 0; mouse.y = 0
+  }
+  window.addEventListener('pointerup', releaseTouch, { passive: true })
+  window.addEventListener('pointercancel', releaseTouch, { passive: true })
   window.addEventListener('blur', () => scene.leavePointer())
 
   // ---------------------------------------------------------------- per-frame UI render
@@ -97,10 +106,9 @@ async function boot() {
   const dots = [...root.querySelectorAll('[data-dot]')]
   const labels = [...root.querySelectorAll('[data-label]')]
   const floats = [...root.querySelectorAll('.float')].map((el) => ({ el, par: +el.dataset.par || 1, fly: el.hasAttribute('data-fly') }))
-  const redToGreen = gsap.utils.interpolate('#c8524d', '#8fbf6d')
-  const markRedToGreen = gsap.utils.interpolate('#da4f49', '#8fbf6d')
+  // red -> green through OKLCH (a clean warm-to-green arc, not the muddy khaki of an RGB blend)
+  const oklch = (a, b, t) => (t <= 0 ? a : t >= 1 ? b : `color-mix(in oklch, ${a}, ${b} ${(t * 100).toFixed(1)}%)`)
   const COLORS = { blue: '#87b7ee', green: '#8fbf6d', red: '#da4f49' }
-  const markerMix = scene.markers.map((m) => gsap.utils.interpolate(COLORS[m.a], COLORS[m.b]))
   let lastNum = -1, lastUnit = ''
 
   function renderUI(dt) {
@@ -110,24 +118,26 @@ async function boot() {
     if (n !== lastNum) { apoNum.textContent = String(n); lastNum = n }
     const unitTxt = APO.green > 0.5 ? 'pg/mL' : 'mg/dL'
     if (unitTxt !== lastUnit) { apoUnit.textContent = unitTxt; lastUnit = unitTxt }
-    const barCol = redToGreen(APO.green)
+    apoUnit.style.opacity = String(Math.min(1, Math.abs(APO.green - 0.5) * 4))   // swaps while invisible
+    const markCol = oklch('#da4f49', '#8fbf6d', APO.green)
     apoFill.style.width = `${APO.fill * 100}%`
-    apoFill.style.background = barCol
+    apoFill.style.background = oklch('#c8524d', '#8fbf6d', APO.green)
     apoMark.style.left = `${APO.mark * 100}%`
     apoMark.style.opacity = APO.markOp
-    apoMark.style.color = markRedToGreen(APO.green)
+    apoMark.style.color = markCol
     apoArrow.style.rotate = `${-90 * APO.green}deg`
-    apoArrow.style.borderTopColor = markRedToGreen(APO.green)
+    apoArrow.style.borderTopColor = markCol
     apoArrow.style.scale = String(1 - APO.green * 0.18)
     gapA.style.left = `${APO.fill * 100}%`
     gapA.style.opacity = APO.fill > 0.02 ? String(1 - APO.green) : '0'
     gapsB.forEach((g) => { g.style.opacity = String(APO.green) })
 
     // markers colour
-    scene.markers.forEach((m, i) => { m.el.style.background = markerMix[i](MK.green) })
+    scene.markers.forEach((m) => { m.el.style.background = oklch(COLORS[m.a], COLORS[m.b], MK.green) })
 
-    // step indicator: the active item is a bar, centred; the rest are dots
-    const GAP = 9, DOT = 3.5, BAR = 13
+    // step indicator: a fixed, tight rail; the active item grows into a bar and the label rides with it
+    // (the bar steps down ~6 ref px per step, as in the frames)
+    const GAP = 2.5, DOT = 3.5, BAR = 14.5, TOP = -17.75
     const hs = dots.map((_, i) => { const w = Math.max(0, 1 - Math.abs(i - IND.p)); return DOT + (BAR - DOT) * w })
     let y = 0; const ys = []
     hs.forEach((h, i) => { ys.push(y + h / 2); y += h + GAP })
@@ -136,13 +146,13 @@ async function boot() {
     dots.forEach((d, i) => {
       const w = Math.max(0, 1 - Math.abs(i - IND.p))
       d.style.height = `${hs[i]}px`
-      d.style.top = `${ys[i] - hs[i] / 2 - centre}px`
+      d.style.top = `${TOP + ys[i] - hs[i] / 2}px`
       d.style.background = w > 0.01 ? `color-mix(in srgb, var(--ink) ${Math.round(w * 100)}%, var(--dot))` : 'var(--dot)'
     })
     labels.forEach((l, i) => {
-      const w = Math.max(0, 1 - Math.abs(i - IND.p) * 1.6)
+      const w = Math.max(0, 1 - Math.abs(i - IND.p) * 2.5)     // one label at a time, never superimposed
       l.style.opacity = w
-      l.style.translate = `0 calc(-50% + ${(i - IND.p) * 10}px)`
+      l.style.translate = `0 calc(-50% + ${TOP + centre + (i - IND.p) * 10}px)`
     })
 
     // mouse parallax on the floating cards
@@ -181,12 +191,22 @@ async function boot() {
   })
 
   // ---------------------------------------------------------------- resize
-  let rz
+  // Layout + canvas follow every resize at once; the ScrollTrigger refresh is debounced and the scroll
+  // progress is restored after it, so a resize or rotation never jumps to another step. Toolbar-only
+  // height changes on touch devices are ignored (as GSAP itself does).
+  let rz, keep = null, lastW = html.clientWidth, lastH = window.innerHeight
   window.addEventListener('resize', () => {
+    const w = html.clientWidth, h = window.innerHeight
+    if (ScrollTrigger.isTouch === 1 && w === lastW && Math.abs(h - lastH) < h * 0.25) return
+    lastW = w; lastH = h
+    if (keep === null) keep = st.progress
+    layout(); scene.setUnit(unit); scene.resize()
     clearTimeout(rz)
     rz = setTimeout(() => {
-      layout(); scene.setUnit(unit); scene.resize(); ScrollTrigger.refresh()
-    }, 120)
+      ScrollTrigger.refresh()
+      lenis.scrollTo(st.start + keep * (st.end - st.start), { immediate: true, force: true })
+      keep = null
+    }, 250)
   })
   ScrollTrigger.refresh()
 
@@ -213,4 +233,5 @@ async function boot() {
   html.classList.add('is-ready')
 }
 
-boot()
+// if anything fails (no WebGL, a missing file) show the composed copy instead of a half-built page
+boot().catch((e) => { console.error(e); html.classList.add('is-ready', 'no-gl') })
