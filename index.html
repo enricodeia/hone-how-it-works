@@ -3,12 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hone — How it works</title>
+  <title>Hone · How it works</title>
   <link rel="preload" href="/hone-how-it-works/fonts/AshcroftTest-Regular.otf" as="font" type="font/otf" crossorigin />
   <link rel="preload" href="/hone-how-it-works/fonts/FriedelProTrial-Regular.otf" as="font" type="font/otf" crossorigin />
+  <link rel="preload" href="/hone-how-it-works/fonts/AshcroftTest-Medium.otf" as="font" type="font/otf" crossorigin />
   <link rel="preload" href="/hone-how-it-works/data/figure.bin" as="fetch" crossorigin />
-  <script type="module" crossorigin src="/hone-how-it-works/assets/index-CbVWrQrM.js"></script>
-  <link rel="stylesheet" crossorigin href="/hone-how-it-works/assets/index-Dj9xL4TL.css">
+  <!-- inline so it applies before the stylesheet is injected: nothing half-built flashes before boot -->
+  <style>html:not(.is-ready) .wide,html:not(.is-ready) .bg__photo,html:not(.is-ready) .after{visibility:hidden}</style>
+  <script type="module" crossorigin src="/hone-how-it-works/assets/index-fuAr6_G2.js"></script>
+  <link rel="stylesheet" crossorigin href="/hone-how-it-works/assets/index-CKl-ysxI.css">
 </head>
 <body>
   <main>
@@ -18,14 +21,13 @@
         <!-- 0 · background: tinted blobs per step, then the photo -->
         <div class="bg" aria-hidden="true">
           <div class="bg__set" data-bg="blue">
-            <i class="blob" style="--x:60;--y:880;--r:720;--c:#b3d3f1"></i>
+            <i class="blob" style="--x:40;--y:880;--r:720;--c:#b3d3f1;scale:.72 1"></i>
             <i class="blob" style="--x:1460;--y:20;--r:700;--c:#c3dcf4"></i>
             <i class="blob blob--soft" style="--x:1620;--y:430;--r:360;--c:#e3eefa"></i>
           </div>
           <div class="bg__set" data-bg="pink">
             <i class="blob" style="--x:210;--y:170;--r:560;--c:#eeb9b7"></i>
-            <i class="blob" style="--x:1420;--y:760;--r:540;--c:#e8bdbc"></i>
-            <i class="blob blob--soft" style="--x:40;--y:560;--r:380;--c:#e8cfcf"></i>
+            <i class="blob" style="--x:1470;--y:620;--r:620;--c:#e8bdbc"></i>
           </div>
           <div class="bg__set" data-bg="sky">
             <i class="blob" style="--x:1250;--y:500;--r:520;--c:#b6d4f1"></i>
@@ -34,7 +36,7 @@
           </div>
           <div class="bg__set" data-bg="become">
             <i class="blob" style="--x:370;--y:185;--r:470;--c:#c3ddf4"></i>
-            <i class="blob" style="--x:1290;--y:560;--r:600;--c:#dbeacf"></i>
+            <i class="blob" style="--x:1290;--y:510;--r:600;--c:#dbeacf"></i>
           </div>
           <div class="bg__photo" data-bg="photo"><img src="/hone-how-it-works/assets/main-bg.webp" alt="" decoding="async" /></div>
         </div>
@@ -42,7 +44,7 @@
         <!-- 1 · layers under the particles: the glass card (step 5) and the phone -->
         <div class="wide wide--under">
          <div class="center">
-          <div class="glass" data-glass>
+          <div class="glass" data-glass aria-hidden="true">
             <p class="glass__title">METABOLIC HEALTH</p>
             <div class="glass__pills">
               <span class="pill pill--glass">All</span>
@@ -60,7 +62,7 @@
             </div>
           </div>
 
-          <div class="phone" data-phone>
+          <div class="phone" data-phone aria-hidden="true">
             <div class="phone__screen" data-screen>
               <div class="phone__content" data-phone-content>
                 <header class="app-head">
