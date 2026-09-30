@@ -4,9 +4,10 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Lenis from 'lenis'
 import { icon, config as faConfig } from '@fortawesome/fontawesome-svg-core'
-import { faEnvelope, faCartShopping } from '@fortawesome/pro-light-svg-icons'
+import { faEnvelope, faCartShopping, faCheck } from '@fortawesome/pro-light-svg-icons'
 import { FigureScene } from './figure.js'
-import { buildTimeline, T, FRAMES } from './timeline.js'
+import { buildTimeline, T } from './timeline.js'
+import { VARIANTS, readVariant, V2_LEFT } from './variants.js'
 
 faConfig.autoAddCss = false
 gsap.registerPlugin(ScrollTrigger)
@@ -18,20 +19,57 @@ const stage = root.querySelector('[data-stage]')
 const section = root.querySelector('.hiw')
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
+// ------------------------------------------------------------------ experience (keys 1 / 2)
+const content = readVariant()
+html.classList.toggle('v2', content.id === 2)
+let geom = VARIANTS[1]
+
 // ------------------------------------------------------------------ layout unit
 let unit = 1
 function layout() {
   const vw = html.clientWidth, vh = window.innerHeight
   const portrait = vw / vh < 0.9
-  // portrait: fit a 560-wide column, but never taller than ~1000 ref px (tablets, near-square windows)
-  unit = portrait ? Math.min(vw / 560, vh / 1000) : Math.min(vw / REF_W, vh / REF_H)
+  // portrait: fit a 560-wide column, but never taller than ~1000 ref px (tablets, near-square windows).
+  // experience 2 (landscape) scales by width, with the height only as a limit, like its frames
+  const split = content.id === 2 && !portrait
+  unit = portrait ? Math.min(vw / 560, vh / 1000) : Math.min(vw / REF_W, vh / (split ? VARIANTS[2].unitH : REF_H))
   html.style.setProperty('--u', unit)
   html.style.setProperty('--fw', vw / unit)
   html.style.setProperty('--fh', vh / unit)
   html.classList.toggle('is-portrait', portrait)
+  // the split geometry needs a landscape viewport; portrait keeps the centred visual
+  return content.id === 2 && !portrait ? VARIANTS[2] : VARIANTS[1]
 }
-layout()
+geom = layout()
 section.style.setProperty('--len', T.end + 1)
+
+// experience 2 re-places the visual into the left column (reference px, relative to its centre)
+function applyGeometry(g) {
+  if (g.id !== 2) return
+  const X = (x) => `calc(${V2_LEFT.pct}% + ${(x - V2_LEFT.x).toFixed(2)}px)`
+  const Y = (y) => `calc(50% + ${(y - 422.5).toFixed(2)}px)`
+  const put = (el, left, top, w, h) => {
+    el.style.left = X(left); el.style.top = Y(top)
+    if (w != null) { el.style.width = `${w}px`; el.style.height = `${h}px` }
+  }
+  const H = g.hero, hh = H.w * (578.5 / 439)
+  put(root.querySelector('[data-anchor="hero"]'), H.cx - H.w / 2, H.cy - hh / 2, H.w, hh)
+  put(root.querySelector('[data-phone]'), g.phone.left, g.phone.top)
+  const C = g.cards
+  put(root.querySelector('.float--blood'), C.blood.left, C.blood.top)
+  put(root.querySelector('.float--apob'), C.apob.left, C.apob.top)
+  put(root.querySelector('.float--prog'), C.prog.left, C.prog.top)
+  put(root.querySelector('.float--testo'), C.testo.left, C.testo.top)
+  put(root.querySelector('.float--estra'), C.estra.left, C.estra.top)
+  put(root.querySelector('[data-glass]'), C.glass.left, C.glass.top)
+  const P = g.panel
+  put(root.querySelector('[data-panel]'), P.cx - P.w / 2, P.cy - P.h / 2, P.w, P.h)
+}
+applyGeometry(geom)
+// the marker card is ApoB in experience 1, Estradiol in experience 2
+root.querySelector('.apob__label').textContent = content.apob.label
+root.querySelector('[data-apob-unit]').textContent = content.apob.unitFrom
+root.querySelectorAll('.rail__list li').forEach((li) => li.insertAdjacentHTML('afterbegin', icon(faCheck).html.join('')))
 
 // ------------------------------------------------------------------ icons
 root.querySelector('[data-fa="envelope"]').insertAdjacentHTML('afterbegin', icon(faEnvelope).html.join(''))
@@ -61,6 +99,7 @@ async function boot() {
     markerHost: root.querySelector('[data-markers]'),
   })
   scene.setUnit(unit)
+  scene.setDustX(geom.dustX)
 
   // UI state driven by the timeline, rendered every frame
   const state = {
@@ -69,7 +108,38 @@ async function boot() {
     MK: { green: 0 },
     PAR: { on: 1, prog: 1 },
   }
-  const { tl, st } = buildTimeline({ root, scene, state })
+  const { tl, st, rail, toDrive, length } = buildTimeline({ root, scene, state, geom, content })
+  const FRAMES = content.frames
+  section.style.setProperty('--len', length + 1)
+
+  // experience 2: block k sits so that it reaches the centre line exactly when its hold begins; during
+  // the hold a translate cancels the scroll (it stays put, reading), then it scrolls on
+  const railBlocks = [...root.querySelectorAll('[data-block]')]
+  const railLine = root.querySelector('[data-rail-line]')
+  const railTop = []
+  function layoutRail() {
+    if (!rail) return
+    const vh = window.innerHeight, c = content.rail.centre
+    railBlocks.forEach((b, i) => {
+      railTop[i] = rail[i].P * vh + c * vh - b.offsetHeight / 2
+      b.style.top = `${railTop[i].toFixed(1)}px`
+    })
+    const last = railBlocks.length - 1
+    const first = railTop[0] + 6.1 * unit                                 // the first node's centre
+    const end = railTop[last] + rail[last].H * vh + railBlocks[last].offsetHeight
+    railLine.style.setProperty('--line-top', `${first}px`)
+    railLine.style.setProperty('--line-h', `${end - first}px`)
+  }
+  function pinRail() {
+    if (!rail) return
+    const vh = window.innerHeight
+    const s = (window.scrollY - st.start) / vh
+    railBlocks.forEach((b, i) => {
+      const shift = Math.min(rail[i].H, Math.max(0, s - rail[i].P)) * vh
+      b.style.transform = shift ? `translate3d(0, ${shift.toFixed(2)}px, 0)` : ''
+    })
+  }
+  layoutRail()
   if (reduced) { state.PAR.on = 0; scene.still = true }
 
   // ---------------------------------------------------------------- smooth scroll
@@ -116,9 +186,10 @@ async function boot() {
     // ApoB card
     const n = Math.round(APO.num)
     if (n !== lastNum) { apoNum.textContent = String(n); lastNum = n }
-    const unitTxt = APO.green > 0.5 ? 'pg/mL' : 'mg/dL'
+    const CA = content.apob
+    const unitTxt = APO.green > 0.5 ? CA.unitTo : CA.unitFrom
     if (unitTxt !== lastUnit) { apoUnit.textContent = unitTxt; lastUnit = unitTxt }
-    apoUnit.style.opacity = String(Math.min(1, Math.abs(APO.green - 0.5) * 4))   // swaps while invisible
+    if (CA.unitTo !== CA.unitFrom) apoUnit.style.opacity = String(Math.min(1, Math.abs(APO.green - 0.5) * 4))   // swaps while invisible
     const markCol = oklch('#da4f49', '#8fbf6d', APO.green)
     apoFill.style.width = `${APO.fill * 100}%`
     apoFill.style.background = oklch('#c8524d', '#8fbf6d', APO.green)
@@ -187,6 +258,7 @@ async function boot() {
     const r = stage.getBoundingClientRect()
     if (r.bottom <= 0) return            // stage scrolled away: idle
     renderUI(dt)
+    pinRail()
     scene.update(dt, gsap.ticker.time)
   })
 
@@ -200,7 +272,9 @@ async function boot() {
     if (ScrollTrigger.isTouch === 1 && w === lastW && Math.abs(h - lastH) < h * 0.25) return
     lastW = w; lastH = h
     if (keep === null) keep = st.progress
-    layout(); scene.setUnit(unit); scene.resize()
+    const g = layout()
+    if (g !== geom) { location.reload(); return }
+    scene.setUnit(unit); scene.resize(); layoutRail()
     clearTimeout(rz)
     rz = setTimeout(() => {
       ScrollTrigger.refresh()
@@ -212,22 +286,39 @@ async function boot() {
 
   // ---------------------------------------------------------------- hooks (verification + dev)
   const scrollToTime = (t) => {
-    const y = st.start + (t / tl.duration()) * (st.end - st.start)
+    const y = st.start + (toDrive(t) / length) * (st.end - st.start)
     lenis.scrollTo(y, { immediate: true, force: true })
     ScrollTrigger.update()
     return y
   }
-  window.__hone = { tl, st, scene, state, lenis, T, FRAMES, scrollToTime, frame: (i) => scrollToTime(FRAMES[i]) }
+  window.__hone = { tl, st, scene, state, lenis, T, FRAMES, variant: content.id, scrollToTime, frame: (i) => scrollToTime(FRAMES[i]) }
+
+  // keys 1 / 2 switch experiences (a clean reload: each one builds its own layout and scroll length)
+  window.addEventListener('keydown', (e) => {
+    if (e.target.closest('input, textarea') || e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return
+    if (e.key === '1' || e.key === '2') {
+      const want = +e.key
+      if (want === content.id) return
+      const q = new URLSearchParams(location.search)
+      if (want === 1) q.delete('v'); else q.set('v', '2')
+      const qs = q.toString()
+      location.href = `${location.pathname}${qs ? `?${qs}` : ''}`
+    }
+  })
 
   if (import.meta.env.DEV) {
+    // Shift + digit: jump to a reference frame; O: overlay it at 50%
     const ov = document.createElement('div')
     ov.className = 'ref-overlay'
     document.body.appendChild(ov)
+    const refDir = content.id === 2 ? `${__REF_DIR__}/b` : __REF_DIR__
+    const refUrl = (i) => `url("${encodeURI('/@fs' + refDir)}/0${i + 1}.png")`
     let refIdx = 0
     window.addEventListener('keydown', (e) => {
       if (e.target.closest('input, textarea')) return
-      if (e.key >= '1' && e.key <= '9') { refIdx = +e.key - 1; scrollToTime(FRAMES[refIdx]); ov.style.backgroundImage = `url("${encodeURI('/@fs' + __REF_DIR__)}/0${refIdx + 1}.png")` }
-      if (e.key === 'o' || e.key === 'O') { ov.classList.toggle('is-on'); ov.style.backgroundImage = `url("${encodeURI('/@fs' + __REF_DIR__)}/0${refIdx + 1}.png")` }
+      const m = /^Digit([1-9])$/.exec(e.code)
+      if (e.shiftKey && m && +m[1] <= FRAMES.length) { refIdx = +m[1] - 1; scrollToTime(FRAMES[refIdx]); ov.style.backgroundImage = refUrl(refIdx) }
+      if (e.key === 'o' || e.key === 'O') { ov.classList.toggle('is-on'); ov.style.backgroundImage = refUrl(refIdx) }
     })
   }
   html.classList.add('is-ready')

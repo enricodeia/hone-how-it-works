@@ -15,7 +15,18 @@ python3 verify/compare.py   # reference | build side by side -> verify/out/cmp-0
 npm run figure     # rebuild the particle man from source-assets/01.png
 ```
 
-Dev keys: `1`–`9` jump to each reference frame, `O` toggles the reference overlay at 50%.
+**Two experiences**, switch with keys **`1`** and **`2`** (or `?v=2` in the URL):
+
+- **1** the original: the animation centred, the copy on the left (`source-assets/01–09.png`).
+- **2** split: the humanoid and the whole animation in a sticky **left column**, a **right column of
+  text that scrolls** (`source-assets/b/01–07.png`). Each text block reaches the middle of the screen,
+  holds there while its step plays on the left, then scrolls on as the next arrives; the timeline is
+  stretched per segment between those holds, so text and animation never drift, forwards or backwards.
+  On phones the visual stays centred and the blocks pass over it as frosted cards.
+
+Dev keys: `Shift`+`1`–`9` jump to each reference frame of the current experience, `O` toggles the
+reference overlay at 50%. Checks: `VARIANT=2 npm run shots`, `node verify/scrolltest2.mjs`
+(hold stability + forward/backward consistency with real wheel scrolling).
 
 ## How it is put together
 

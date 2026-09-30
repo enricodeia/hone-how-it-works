@@ -37,7 +37,7 @@ p, h2, h3 { margin: 0; font-weight: 400; }
 img { display: block; }
 
 /* ---------------------------------------------------------------- section + stage */
-.hiw { position: relative; height: calc(var(--len, 13.6) * 100vh); }
+.hiw { position: relative; height: calc(var(--len, 13.6) * 100vh); overflow-x: clip; }   /* clip, not hidden: sticky keeps working, and nothing can widen a phone's layout viewport */
 .hiw__stage {
   position: sticky; top: 0; height: 100vh; overflow: hidden; background: #fff; color: var(--ink);
   cursor: default;
@@ -308,3 +308,59 @@ img { display: block; }
 @media (prefers-reduced-motion: reduce) {
   .cta { transition: none; }
 }
+
+/* ================================================================ split layout (key 2)
+   The stage stays the same sticky full-viewport layer; its centre column is re-placed into the left
+   57% by JS (from src/variants.js), and .rail, a column of text blocks pinned to moments of the
+   timeline, scrolls over the right side. Every rail size is reference px x --u. */
+.rail, .panel { display: none; }
+.v2 .copy, .v2 .cta { display: none; }
+.v2 .steps__label span:last-child { display: none; }
+
+.v2 .rail {
+  display: block; position: absolute; top: 0; left: 57.13%; right: 0; height: 100%; z-index: 4;
+  pointer-events: none; color: #000;
+}
+.rail__line { position: absolute; left: 0; top: var(--line-top, 0px); width: 1px; height: var(--line-h, 0px); background: #e4e4e4; }
+.rail__block { position: absolute; left: calc(21px * var(--u)); top: 0; width: calc(560px * var(--u)); }
+.rail__badge {
+  position: absolute; left: calc(-68px * var(--u)); top: calc(-9.3px * var(--u));
+  width: calc(37px * var(--u)); height: calc(30.5px * var(--u)); border-radius: calc(16px * var(--u));
+  display: grid; place-items: center; padding-top: calc(1px * var(--u));
+  background: #fef7b7; color: #111; font: 400 calc(13.5px * var(--u))/1 var(--serif);
+}
+.rail__node {
+  position: absolute; left: calc(-23.5px * var(--u)); top: calc(3.6px * var(--u));
+  width: calc(5px * var(--u)); height: calc(5px * var(--u)); border-radius: 50%; background: #d4d4d4;
+}
+.rail__eyebrow { font: 400 calc(12.5px * var(--u))/calc(12px * var(--u)) var(--serif); letter-spacing: .005em; white-space: nowrap; }
+.rail__title { margin-top: calc(28px * var(--u)); font: 400 calc(44px * var(--u))/1 var(--serif); white-space: nowrap; }
+.rail__text { margin-top: calc(26px * var(--u)); font: 400 calc(18.5px * var(--u))/calc(23px * var(--u)) var(--sans); letter-spacing: -.02em; white-space: nowrap; }
+.rail__block--more .rail__text { margin-top: 0; }
+.rail__list { list-style: none; margin: calc(33px * var(--u)) 0 0; padding: 0; }
+.rail__list li { display: flex; align-items: center; gap: calc(8.5px * var(--u)); font: 400 calc(17.8px * var(--u))/calc(26px * var(--u)) var(--serif); white-space: nowrap; }
+.rail__list li svg { width: calc(11px * var(--u)); height: auto; flex: none; color: #222; }
+
+/* the photo, framed in the left column for the final step */
+.v2 .panel { display: block; position: absolute; border-radius: 14px; overflow: hidden; opacity: 0; will-change: opacity, transform; }
+.panel img { width: 100%; height: 100%; object-fit: cover; object-position: 100% 35%; transform-origin: 70% 40%; }
+
+/* the recommendations become a carousel: a 0.783x slot with the next card peeking on the right */
+.v2 .app-reco__title { top: 106.6px; }
+.v2 .app-reco__text { top: 149.7px; }
+.v2 .reco-card { width: 211.7px; height: 258.3px; top: 307.9px; border-radius: 11px; }
+.v2 .reco-card[data-slot="1"] { left: 241.9px; top: 307.9px; }
+.v2 .reco-card img { left: 18.3px; top: 16.9px; width: 175px; height: 175px; }
+.v2 .reco-card__name { left: 20.2px; top: 201px; font-size: 19.9px; }
+.v2 .reco-card__kind { left: 20.2px; top: 227.5px; font-size: 12.2px; }
+
+/* portrait: the visual keeps the centred layout, the text blocks pass over it as frosted cards */
+.is-portrait.v2 .rail { left: 0; }
+.is-portrait.v2 .rail__line, .is-portrait.v2 .rail__node, .is-portrait.v2 .rail__badge { display: none; }
+.is-portrait.v2 .rail__block {
+  left: calc(24px * var(--u)); width: auto; right: calc(24px * var(--u)); padding: calc(22px * var(--u));
+  border-radius: calc(18px * var(--u)); background: rgba(255, 255, 255, .84);
+  backdrop-filter: blur(14px); box-shadow: 0 10px 40px rgba(0, 0, 0, .06);
+}
+.is-portrait.v2 .rail__text, .is-portrait.v2 .rail__list li { white-space: normal; }
+.is-portrait.v2 .rail__text br { display: none; }

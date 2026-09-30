@@ -7,8 +7,9 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, 'verify', 'out')
 frames = [int(a) for a in sys.argv[1:]] or list(range(1, 10))
 suffix = os.environ.get('SUFFIX', '')
+refdir = os.path.join(ROOT, 'source-assets', os.environ.get('REFSUB', ''))
 for f in frames:
-    ref = Image.open(os.path.join(ROOT, 'source-assets', f'0{f}.png')).convert('RGB')
+    ref = Image.open(os.path.join(refdir, f'0{f}.png')).convert('RGB')
     shot_p = os.path.join(OUT, f'frame-0{f}{suffix}.png')
     if not os.path.exists(shot_p):
         continue

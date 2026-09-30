@@ -163,7 +163,7 @@ const dustVert = /* glsl */ `
   attribute float aSlot;
   attribute float aRank;
   uniform float uU, uDpr, uTime, uRot, uAlpha;
-  uniform vec2 uPar;
+  uniform vec2 uPar, uOff;
   uniform vec4 uPal;        // blue, red, red/green, green weights
   varying vec3 vColor;
   varying float vAlpha;
@@ -174,6 +174,7 @@ const dustVert = /* glsl */ `
     p.xy = mat2(cos(a), -sin(a), sin(a), cos(a)) * p.xy;
     p.xy += uPar * (0.4 + p.z / 300.0) * 12.0;
     p *= uU;
+    p.xy += uOff;                                   // rings centred on the visual (left column in experience 2)
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
     gl_Position = projectionMatrix * mv;
     float tw = 0.7 + 0.3 * sin(uTime * (0.6 + aRank * 1.4) + aRank * 60.0);
@@ -382,7 +383,7 @@ export class FigureScene {
     g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 8000)
     this.dustUniforms = {
       uU: { value: 1 }, uDpr: { value: 1 }, uTime: { value: 0 }, uRot: { value: 0 }, uAlpha: { value: 0 },
-      uPar: { value: new THREE.Vector2() }, uPal: { value: new THREE.Vector4(1, 0, 0, 0) },
+      uPar: { value: new THREE.Vector2() }, uOff: { value: new THREE.Vector2() }, uPal: { value: new THREE.Vector4(1, 0, 0, 0) },
       uEx: { value: new THREE.Vector4() }, uExR: { value: 0 }, uExOn: { value: 0 },
     }
     const mat = premultiplied(new THREE.ShaderMaterial({ uniforms: this.dustUniforms, vertexShader: dustVert, fragmentShader: dustFrag }))
@@ -436,7 +437,8 @@ export class FigureScene {
     this.figUniforms.uCamZ.value = this.camZ
     this.dustUniforms.uDpr.value = this.dpr
   }
-  setUnit(u) { this.u = u; this.dustUniforms.uU.value = u }
+  setUnit(u) { this.u = u; this.dustUniforms.uU.value = u; this.dustUniforms.uOff.value.set((this.dustX || 0) * u, 0) }
+  setDustX(x) { this.dustX = x; this.setUnit(this.u) }
 
   /* ---------------------------------------------------------------- per frame */
   update(dt, time) {
