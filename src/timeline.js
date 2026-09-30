@@ -41,8 +41,8 @@ export function buildTimeline({ root, scene, state, geom, content }) {
   const split = geom.id === 2                // left-column geometry (landscape experience 2)
 
   const stage = $('[data-stage]')
-  const blocks = $$('.copy__block')
-  const lines = blocks.map((b) => [...b.querySelectorAll('.ln > span')])
+  const blocks = $$('[data-step]')
+  const lines = blocks.map((b) => [...b.querySelectorAll('[data-line]')])
   const bg = Object.fromEntries($$('[data-bg]').map((el) => [el.dataset.bg, el]))
   const photoImg = bg.photo.querySelector('img')
   const blood = $('[data-card="blood"]'), apob = $('[data-card="apob"]')
@@ -51,7 +51,7 @@ export function buildTimeline({ root, scene, state, geom, content }) {
   const phone = $('[data-phone]'), content_ = $('[data-phone-content]')
   const appUI = $$('[data-app-ui]')
   const video = $('[data-video]')
-  const home = $('.phone__home')
+  const home = $('[data-phone-home]')
   const slots = $$('[data-slot]')
   const prog = $('[data-product="prog"]'), testo = $('[data-product="testo"]'), estra = $('[data-product="estra"]')
   const glass = $('[data-glass]')
@@ -77,9 +77,10 @@ export function buildTimeline({ root, scene, state, geom, content }) {
   const one = { scale: 1, x: 0, y: 0 }
   const at = (s) => ({ ...one, scale: s })
 
-  // card contents (the figure anchor and the glass bloom are not contents)
-  const parts = (el) => [...el.children].filter((c) => !c.matches('.anchor, .glass__bloom'))
-  const frost = (el) => (el.classList.contains('glass') ? '24px' : el.classList.contains('pcard') ? '14px' : '22px')
+  // a card's contents fade in and out; the figure anchor and decorative layers are not contents
+  const parts = (el) => [...el.children].filter((c) => !c.matches('[data-anchor], [data-decor]'))
+  // the full backdrop blur of a card is defined in CSS (--frost-max), next to its other frost values
+  const frost = (el) => getComputedStyle(el).getPropertyValue('--frost-max').trim() || '22px'
 
   // ---------------------------------------------------------------- initial states
   lines.forEach((ls, i) => { if (i > 0) gsap.set(ls, { yPercent: 112, opacity: 0 }) })
@@ -288,7 +289,7 @@ export function buildTimeline({ root, scene, state, geom, content }) {
 
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   const st = ScrollTrigger.create({
-    trigger: root.querySelector('.hiw'),
+    trigger: root.querySelector('[data-section]'),
     start: 'top top',
     end: 'bottom bottom',
     scrub: reduced ? true : 0.5,   // a little inertia on top of Lenis so fast flicks still ease in

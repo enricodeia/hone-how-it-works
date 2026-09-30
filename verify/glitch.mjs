@@ -7,7 +7,7 @@ const OUT = fileURLToPath(new URL('./out/glitch/', import.meta.url)); mkdirSync(
 const b = await chromium.launch({ args: ['--use-angle=metal', '--enable-gpu-rasterization', '--ignore-gpu-blocklist'] })
 const p = await b.newPage({ viewport: { width: 1506, height: 845 }, deviceScaleFactor: 2 })
 await p.goto('http://localhost:5230/', { waitUntil: 'networkidle' })
-await p.waitForFunction(() => window.__hone && document.documentElement.classList.contains('is-ready'))
+await p.waitForFunction(() => window.__hone && document.documentElement.classList.contains('page--ready'))
 await p.evaluate(() => { window.__hone.scene.still = true }); await p.waitForTimeout(3400)
 const shots = [
   ['blood', [1.0, 1.1, 1.2, 1.3, 1.45, 1.6], { x: 440, y: 210, width: 220, height: 300 }],

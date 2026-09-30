@@ -1,9 +1,35 @@
 /*
   Hone · How it works
-  Every length inside .wide is in REFERENCE px: the 1506 x 845 CSS viewport the design frames
-  were captured at. The .wide frames are sized to (viewport / --u) and scaled by --u, so the
-  layout lands on the screenshots at any size. Centre-column items sit at
-  calc(50% + dx) / calc(50% + dy) where dx = x - 753 and dy = y - 422.5.
+
+  ─── Naming: BEM ─────────────────────────────────────────────────────────────────────────────
+  .block                 an independent component          .phone, .reading, .stepper
+  .block__element        a part of it, always one level    .phone__screen   (never .a__b__c)
+  .block--modifier       a variant or a state              .pill--glass, .page--split
+  .block__el--modifier   a variant of an element           .app__slot--second
+
+  · Placement lives on the parent, appearance on the block (a BEM mix):
+      <div class="app__slot product product--in-app">   app__slot = where, product = what.
+      <div class="frame__hero figure-anchor">           frame__hero = where, figure-anchor = what.
+  · Page-wide states are modifiers of the root block .page (on <html>):
+      page--ready     boot finished (the inline gate in index.html shows the stage)
+      page--split     experience 2 (key 2 / ?v=2): animation left, chapters scrolling right
+      page--portrait  portrait viewport (the visual stays centred)
+      page--fallback  boot failed (no WebGL): only the composed copy is shown
+  · Classes style, data-* attributes drive JavaScript. No script selects by class name, so a class
+    can be renamed without touching JS, and a data hook can move without touching CSS.
+  · Third-party classes left as they are: .lenis* (Lenis), .svg-inline--fa (Font Awesome).
+
+  ─── Units: reference px ─────────────────────────────────────────────────────────────────────
+  Every length inside .frame is in REFERENCE px: the 1506 x 845 CSS viewport the design frames
+  were captured at. .frame is sized to (viewport / --u) and scaled by --u (set by layout() in
+  main.js), so the layout lands on the screenshots at any size. Items in .frame__center sit at
+  calc(50% + dx) / calc(50% + dy), where dx = x - 753 and dy = y - 422.5.
+  .chapters is outside .frame and multiplies its lengths by var(--u) instead.
+
+  ─── Blocks, in paint order ──────────────────────────────────────────────────────────────────
+  page · how-it-works · backdrop · frame · figure-anchor · photo-panel · health-card · phone · app
+  · particles (canvas) · markers · card · sample · reading · product · pill · trend · story
+  · stepper · cta · chapters · outro · ref-overlay (dev)
 */
 @font-face { font-family: 'Ashcroft'; src: url('/fonts/AshcroftTest-Regular.otf') format('opentype'); font-weight: 400; font-display: block; }
 @font-face { font-family: 'Ashcroft'; src: url('/fonts/AshcroftTest-Medium.otf') format('opentype'); font-weight: 500; font-display: block; }
@@ -28,6 +54,7 @@
   --screen: #f7f6f4;
 }
 
+/* ================================================================ base */
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; background: #fff; color: #111; }
 html.lenis, html.lenis body { height: auto; }
@@ -36,18 +63,20 @@ body { font-family: var(--sans); -webkit-font-smoothing: antialiased; -moz-osx-f
 p, h2, h3 { margin: 0; font-weight: 400; }
 img { display: block; }
 
-/* ---------------------------------------------------------------- section + stage */
-.hiw { position: relative; height: calc(var(--len, 13.6) * 100vh); overflow-x: clip; }   /* clip, not hidden: sticky keeps working, and nothing can widen a phone's layout viewport */
-.hiw__stage {
+/* ================================================================ how-it-works: the section + its sticky stage */
+/* overflow-x: clip, not hidden: sticky keeps working, and nothing can widen a phone's layout viewport */
+.how-it-works { position: relative; height: calc(var(--len, 13.6) * 100vh); overflow-x: clip; }
+.how-it-works__stage {
   position: sticky; top: 0; height: 100vh; overflow: hidden; background: #fff; color: var(--ink);
   cursor: default;
 }
 
-/* ---------------------------------------------------------------- background */
-.bg { position: absolute; inset: 0; z-index: 0; background: #fff; }
-.bg__set { position: absolute; inset: 0; opacity: 0; will-change: opacity; }
-.bg__set[data-bg="blue"] { opacity: 1; }
-.blob {
+/* ================================================================ backdrop: per-step tints, then the photo */
+.backdrop { position: absolute; inset: 0; z-index: 0; background: #fff; }
+.backdrop__layer { position: absolute; inset: 0; opacity: 0; will-change: opacity; }
+.backdrop__layer--visible { opacity: 1; }
+/* --x/--y: centre in reference px, --r: radius, --c: colour (set inline per blob) */
+.backdrop__blob {
   position: absolute;
   left: calc(var(--x) / 1506 * 100%);
   top: calc(var(--y) / 845 * 100%);
@@ -63,140 +92,128 @@ img { display: block; }
     transparent 100%);
   will-change: transform;
 }
-.blob--soft { opacity: .8; }
-.bg__photo { position: absolute; inset: 0; opacity: 0; overflow: hidden; }
-.bg__photo img { width: 100%; height: 100%; object-fit: cover; transform-origin: 50% 40%; }
+.backdrop__blob--soft { opacity: .8; }
+.backdrop__photo { position: absolute; inset: 0; opacity: 0; overflow: hidden; }
+.backdrop__photo-image { width: 100%; height: 100%; object-fit: cover; transform-origin: 50% 40%; }
 
-/* ---------------------------------------------------------------- scaled frames */
-.wide {
+/* ================================================================ frame: a layer in reference px, scaled by --u */
+.frame {
   position: absolute; left: 0; top: 0;
   width: calc(var(--fw) * 1px); height: calc(var(--fh) * 1px);
   transform: scale(var(--u)); transform-origin: 0 0;
   pointer-events: none;
 }
-.wide--under { z-index: 1; }
-.gl { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; display: block; }
-.wide--over { z-index: 3; }
-.center { position: absolute; inset: 0; transform-origin: 50% 50%; }
-.anchor { position: absolute; pointer-events: none; }
-.anchor--hero { left: calc(50% - 212px); top: calc(50% - 276.5px); width: 439px; height: 578.5px; }
+.frame--under { z-index: 1; }
+.frame--over { z-index: 3; }
+.frame__center { position: absolute; inset: 0; transform-origin: 50% 50%; }
+.frame__hero { left: calc(50% - 212px); top: calc(50% - 276.5px); width: 439px; height: 578.5px; }
+/* a floating card's position + mouse parallax (CSS translate, from main.js); the card inside is the timeline's */
+.frame__float { position: absolute; will-change: transform; }
+.frame__float--blood { left: calc(50% - 298.9px); top: calc(50% - 199.6px); width: 191.3px; height: 268.8px; }
+.frame__float--reading { left: calc(50% + 75.3px); top: calc(50% + 12px); width: 256.8px; height: 101.6px; }
+.frame__float--progesterone { left: calc(50% - 312.5px); top: calc(50% - 119.8px); width: 190.5px; height: 238.7px; }
+.frame__float--testosterone { left: calc(50% + 116.7px); top: calc(50% - 294.5px); width: 189.8px; height: 237.2px; }
+.frame__float--estradiol { left: calc(50% + 116.7px); top: calc(50% + 85.8px); width: 189.8px; height: 238.7px; }
 
-/* ---------------------------------------------------------------- copy (left) */
-.copy { position: absolute; left: 62.5px; top: calc(50% - 97.5px); width: 520px; color: var(--ink); }
-.copy__eyebrow { font: 400 12.5px/12px var(--serif); letter-spacing: .005em; height: 12px; white-space: nowrap; }
-.copy__stack { position: relative; }
-.copy__block { position: absolute; left: 0; top: 0; width: 100%; }
-.copy__title {
-  position: absolute; left: -1px; top: 21.9px;
-  font: 400 50.5px/1 var(--serif); letter-spacing: 0; white-space: nowrap;
+/* ================================================================ figure-anchor: an invisible box the particle man is drawn on */
+/* FigureScene measures it every frame; its position comes from the element it is mixed with */
+.figure-anchor { position: absolute; pointer-events: none; }
+
+/* ================================================================ particles: the three.js canvas */
+.particles { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; display: block; }
+
+/* ================================================================ markers: body markers, projected from 3D by figure.js */
+.markers { position: absolute; inset: 0; }
+.markers__dot {
+  position: absolute; left: 0; top: 0; width: 18.5px; height: 18.5px; margin: -9.25px 0 0 -9.25px;
+  border-radius: 50%; background: var(--blue); will-change: transform;
 }
-.copy__text { position: absolute; left: 0; top: 98.2px; font: 400 18.5px/22.8px var(--sans); letter-spacing: -.02em; white-space: nowrap; }
-.ln { display: block; overflow: hidden; padding: 0 .1em .26em 0; margin-bottom: -.26em; }
-.copy__text .ln { padding-bottom: .2em; margin-bottom: -.2em; }
-.ln > span { display: inline-block; will-change: transform; }
 
-/* ---------------------------------------------------------------- step indicator (right) */
-.steps { position: absolute; right: 21.5px; top: calc(50% + 2.5px); width: 0; height: 0; color: var(--ink); }
-.steps__rail { position: absolute; right: 0; top: 0; width: 3.5px; }
-.steps__dot { position: absolute; right: 0; width: 3.5px; height: 3.5px; border-radius: 2px; background: var(--dot); }
-.steps__labels { position: absolute; right: 16px; top: 0; }
-.steps__label {
-  position: absolute; right: 0; top: 0; translate: 0 -50%;
-  display: flex; gap: 9px; white-space: nowrap;
-  font: 400 15.1px/1 var(--serif); letter-spacing: -.003em; padding-top: 1.6px;
+/* ================================================================ card: a frosted surface
+   Cards never fade their own opacity (a half-transparent frosted card shows what is behind it twice:
+   sharp through the transparency and blurred through the frost). Instead the frost itself grows:
+   --ga scales the tint alpha, --gb the backdrop blur (up to --frost-max), and the contents fade in on
+   their own. The timeline reads --frost-max, so the blur strength is defined here, not in JS. */
+.card { position: absolute; inset: 0; border-radius: 12px; --ga: 0; --gb: 0px; }
+/* white frosted glass with a soft grey bloom, as in the Baseline frame */
+.card--glass {
+  --frost-max: 22px;
+  background:
+    radial-gradient(60% 45% at 62% 78%, rgba(120, 104, 104, calc(.09 * var(--ga))), transparent 70%),
+    linear-gradient(160deg, rgba(255, 255, 255, calc(.5 * var(--ga))), rgba(255, 255, 255, calc(.72 * var(--ga))));
+  backdrop-filter: blur(var(--gb)) saturate(calc(1 + .05 * var(--ga)));
+  box-shadow: 0 1px 0 rgba(255, 255, 255, calc(.6 * var(--ga))) inset;
 }
-.steps__label span:last-child { font-variant-numeric: lining-nums; }
-
-/* ---------------------------------------------------------------- CTA */
-.cta {
-  position: absolute; left: calc(50% - 55px); bottom: 24.2px; width: 110px; height: 44.4px;
-  display: grid; place-items: center; border-radius: 22.2px; background: var(--lime);
-  color: #111; font: 400 13.5px/1 var(--serif); text-decoration: none; padding-top: 1px;
-  pointer-events: auto; opacity: 0; transition: scale .35s cubic-bezier(.2,.7,.2,1);
-  --cy: 10px; translate: 0 var(--cy);            /* the timeline slides it via --cy, so :hover scale stays free */
+/* grey-to-white translucent glass */
+.card--product {
+  --frost-max: 14px;
+  background: linear-gradient(118deg, rgba(221, 221, 221, calc(.94 * var(--ga))) 0%, rgba(232, 232, 232, calc(.86 * var(--ga))) 42%, rgba(252, 252, 252, calc(.78 * var(--ga))) 100%);
+  backdrop-filter: blur(var(--gb));
 }
-.cta:hover { scale: 1.04; }
-.cta:focus-visible { outline: 2px solid #111; outline-offset: 3px; }
 
-/* ---------------------------------------------------------------- shared bits */
-.tri { display: inline-block; width: 0; height: 0; border-style: solid; flex: none; }
-.tri--down { border-width: 6.2px 3.8px 0 3.8px; border-color: currentColor transparent transparent transparent; }
-.tri--up { border-width: 0 3.8px 6.2px 3.8px; border-color: transparent transparent currentColor transparent; }
-.tri--right { border-width: 3.4px 0 3.4px 5.4px; border-color: transparent transparent transparent currentColor; }
-.tri--red { color: #e0493f; }
-.tri--blue { color: #6e9fe6; }
-.tri--green { color: #8fcf6a; }
+/* ================================================================ sample: the blood sample card */
+.sample__image { position: absolute; left: 32.9px; top: 14.1px; width: 124.7px; height: 210px; }
+.sample__name { position: absolute; left: 20.4px; top: 233.4px; font: 400 20.7px/1 var(--serif); letter-spacing: -.005em; white-space: nowrap; color: #111; }
+
+/* ================================================================ reading: a lab value with its range bar (ApoB / Estradiol) */
+.reading__label { position: absolute; left: 25.2px; top: 31.7px; font: 400 21.4px/1 var(--serif); color: #111; }
+.reading__value { position: absolute; left: 131.7px; top: 20.6px; display: flex; align-items: baseline; white-space: nowrap; color: #111; }
+.reading__number { font: 400 34px/1 var(--serif); letter-spacing: -.02em; font-variant-numeric: lining-nums tabular-nums; }
+.reading__unit { font: 400 13px/1 var(--sans); color: #9b9b9b; margin-left: 5px; letter-spacing: .01em; }
+/* colour, rotation and scale are written every frame by renderUI (red down -> green right) */
+.reading__arrow {
+  position: absolute; left: 94px; top: 19px; width: 0; height: 0; border-style: solid;
+  border-width: 7px 4.3px 0 4.3px; border-color: var(--red) transparent transparent transparent;
+}
+.reading__bar { position: absolute; left: 23.3px; top: 73px; width: 210.1px; height: 4.5px; }
+.reading__track, .reading__fill { position: absolute; left: 0; top: 0; height: 100%; border-radius: 2.4px; }
+.reading__track { width: 100%; background: var(--track); }
+.reading__fill { width: 0%; background: var(--red-bar); }
+.reading__gap { position: absolute; top: -.5px; width: 1.6px; height: 5.5px; margin-left: -.8px; background: #f4f0f0; opacity: 0; }
+.reading__gap--current { left: 74%; }          /* follows the fill's end (renderUI) */
+.reading__gap--third { left: 33.3%; }
+.reading__gap--two-thirds { left: 66.6%; }
+.reading__mark { position: absolute; left: 0%; top: -8.5px; width: 0; height: 0; color: var(--red); opacity: 0; }
+.reading__mark::before {
+  content: ''; position: absolute; left: -3.6px; top: 0; border-style: solid;
+  border-width: 6px 3.6px 0 3.6px; border-color: currentColor transparent transparent transparent;
+}
+.reading__mark-line { position: absolute; left: -.6px; top: 6.6px; width: 1.2px; height: 7.6px; background: #fff; border-radius: 1px; }
+
+/* ================================================================ product: a product card (floating, or in the app) */
+.product__image { position: absolute; left: 17.4px; top: 16px; width: 155.7px; height: 155.7px; }
+.product__name { position: absolute; left: 18.5px; top: 179.6px; font: 400 21.2px/1 var(--serif); letter-spacing: -.005em; color: #111; white-space: nowrap; }
+.product__kind { position: absolute; left: 18.5px; top: 206.6px; font: 400 15.8px/1 var(--serif); color: #111; white-space: nowrap; }
+/* inside the phone: an opaque tile, revealed by the timeline */
+.product--in-app { border-radius: 14px; overflow: hidden; background: linear-gradient(118deg, #dedede 0%, #e8e8e7 42%, #fafaf9 100%); opacity: 0; }
+.product--in-app .product__image { left: 23.4px; top: 21.6px; width: 223.5px; height: 223.5px; }
+.product--in-app .product__name { left: 25.8px; top: 256.7px; font-size: 24.2px; letter-spacing: -.008em; white-space: normal; }
+.product--in-app .product__kind { left: 25.8px; top: 290.6px; font-size: 15.2px; white-space: normal; }
+
+/* ================================================================ pill: a filter chip */
 .pill {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   height: 33.2px; padding: 0 16.6px; border-radius: 17px; background: #fff; color: #202020;
   font: 400 12px/1 var(--sans); white-space: nowrap; flex: none;
 }
-.pill--dark { background: #202020; color: #fff; }
+.pill--active { background: #202020; color: #fff; }
+.pill--all { width: 49.7px; padding: 0; }
+.pill--glass { height: 45.2px; padding: 0 22.5px; gap: 11px; border-radius: 23px; background: rgba(255, 255, 255, .2); color: #fff; font-size: 16.3px; }
+.pill--glass.pill--all { width: 67px; padding: 0; }
 
-/* floating cards: .float carries position + mouse parallax, the card inside is animated by the timeline */
-.float { position: absolute; will-change: transform; }
-.float--blood { left: calc(50% - 298.9px); top: calc(50% - 199.6px); width: 191.3px; height: 268.8px; }
-.float--apob { left: calc(50% + 75.3px); top: calc(50% + 12px); width: 256.8px; height: 101.6px; }
-.float--prog { left: calc(50% - 312.5px); top: calc(50% - 119.8px); width: 190.5px; height: 238.7px; }
-.float--testo { left: calc(50% + 116.7px); top: calc(50% - 294.5px); width: 189.8px; height: 237.2px; }
-.float--estra { left: calc(50% + 116.7px); top: calc(50% + 85.8px); width: 189.8px; height: 238.7px; }
+/* ================================================================ trend: a status triangle */
+.trend { display: inline-block; width: 0; height: 0; border-style: solid; flex: none; }
+.trend--low { color: #e0493f; border-width: 6.2px 3.8px 0 3.8px; border-color: currentColor transparent transparent transparent; }
+.trend--optimal { color: #6e9fe6; border-width: 0 3.8px 6.2px 3.8px; border-color: transparent transparent currentColor transparent; }
+.trend--in-range { color: #8fcf6a; border-width: 3.4px 0 3.4px 5.4px; border-color: transparent transparent transparent currentColor; }
+.trend--large.trend--low { border-width: 8.4px 5.1px 0 5.1px; }
+.trend--large.trend--optimal { border-width: 0 5.1px 8.4px 5.1px; }
+.trend--small.trend--low { border-width: 5.6px 3.4px 0 3.4px; }
+.trend--small.trend--optimal { border-width: 0 3.4px 5.6px 3.4px; }
+.trend--tiny.trend--optimal { border-width: 0 3px 5px 3px; }
 
-/* Cards never fade their own opacity (a half-transparent frosted card shows what is behind it twice:
-   sharp through the transparency and blurred through the frost). Instead the frost itself grows:
-   --ga scales the tint alpha, --gb the backdrop blur, and the contents fade in on their own. */
-.gcard, .pcard { position: absolute; inset: 0; border-radius: 12px; --ga: 0; --gb: 0px; }
-/* white frosted glass with a soft grey bloom, as in the Baseline frame */
-.gcard {
-  background:
-    radial-gradient(60% 45% at 62% 78%, rgba(120, 104, 104, calc(.09 * var(--ga))), transparent 70%),
-    linear-gradient(160deg, rgba(255, 255, 255, calc(.5 * var(--ga))), rgba(255, 255, 255, calc(.72 * var(--ga))));
-  backdrop-filter: blur(var(--gb)) saturate(calc(1 + .05 * var(--ga)));
- 
-  box-shadow: 0 1px 0 rgba(255, 255, 255, calc(.6 * var(--ga))) inset;
-}
-.gcard--blood img { position: absolute; left: 32.9px; top: 14.1px; width: 124.7px; height: 210px; }
-.gcard__name { position: absolute; left: 20.4px; top: 233.4px; font: 400 20.7px/1 var(--serif); letter-spacing: -.005em; white-space: nowrap; color: #111; }
-
-.apob__label { position: absolute; left: 25.2px; top: 31.7px; font: 400 21.4px/1 var(--serif); color: #111; }
-.apob__value { position: absolute; left: 131.7px; top: 20.6px; display: flex; align-items: baseline; white-space: nowrap; color: #111; }
-.apob__num { font: 400 34px/1 var(--serif); letter-spacing: -.02em; font-variant-numeric: lining-nums tabular-nums; }
-.apob__unit { font: 400 13px/1 var(--sans); color: #9b9b9b; margin-left: 5px; letter-spacing: .01em; }
-.apob__arrow {
-  position: absolute; left: 94px; top: 19px; width: 0; height: 0; border-style: solid;
-  border-width: 7px 4.3px 0 4.3px; border-color: var(--red) transparent transparent transparent;
-}
-.apob__arrow.is-right { border-width: 4.3px 0 4.3px 7px; border-color: transparent transparent transparent var(--green); top: 17px; }
-.apob__bar { position: absolute; left: 23.3px; top: 73px; width: 210.1px; height: 4.5px; }
-.apob__track, .apob__fill { position: absolute; left: 0; top: 0; height: 100%; border-radius: 2.4px; }
-.apob__track { width: 100%; background: var(--track); }
-.apob__fill { width: 0%; background: var(--red-bar); }
-.apob__gap { position: absolute; top: -.5px; width: 1.6px; height: 5.5px; margin-left: -.8px; background: #f4f0f0; opacity: 0; }
-.apob__gap[data-apob-gap="a"] { left: 74%; }
-.apob__gap[data-apob-gap="b"] { left: 33.3%; }
-.apob__gap[data-apob-gap="c"] { left: 66.6%; }
-.apob__mark { position: absolute; left: 0%; top: -8.5px; width: 0; height: 0; color: var(--red); opacity: 0; }
-.apob__mark::before {
-  content: ''; position: absolute; left: -3.6px; top: 0; border-style: solid;
-  border-width: 6px 3.6px 0 3.6px; border-color: currentColor transparent transparent transparent;
-}
-.apob__mark b { position: absolute; left: -.6px; top: 6.6px; width: 1.2px; height: 7.6px; background: #fff; border-radius: 1px; }
-
-.markers { position: absolute; inset: 0; }
-.marker {
-  position: absolute; left: 0; top: 0; width: 18.5px; height: 18.5px; margin: -9.25px 0 0 -9.25px;
-  border-radius: 50%; background: var(--blue); will-change: transform;
-}
-
-/* product cards: grey-to-white translucent glass */
-.pcard {
-  background: linear-gradient(118deg, rgba(221, 221, 221, calc(.94 * var(--ga))) 0%, rgba(232, 232, 232, calc(.86 * var(--ga))) 42%, rgba(252, 252, 252, calc(.78 * var(--ga))) 100%);
-  backdrop-filter: blur(var(--gb));
-}
-.pcard img { position: absolute; left: 17.4px; top: 16px; width: 155.7px; height: 155.7px; }
-.pcard__name { position: absolute; left: 18.5px; top: 179.6px; font: 400 21.2px/1 var(--serif); letter-spacing: -.005em; color: #111; white-space: nowrap; }
-.pcard__kind { position: absolute; left: 18.5px; top: 206.6px; font: 400 15.8px/1 var(--serif); color: #111; white-space: nowrap; }
-
-/* ---------------------------------------------------------------- phone */
+/* ================================================================ phone: the device mockup */
+/* transform-origin = the figure slot's centre, so the Blueprint zoom-out hands the figure over in place */
 .phone {
   position: absolute; left: calc(50% - 153.5px); top: calc(50% - 332px); width: 307px; height: 668.5px;
   border-radius: 50px; background: #111; padding: 4.5px; opacity: 0; will-change: transform, opacity;
@@ -207,160 +224,196 @@ img { display: block; }
 .phone__status { position: absolute; inset: 0 0 auto 0; height: 50px; z-index: 5; color: #111; }
 .phone__time { position: absolute; left: 39.8px; top: 16.8px; font: 600 15px/16px -apple-system, 'SF Pro Text', 'Helvetica Neue', system-ui, sans-serif; letter-spacing: -.01em; }
 .phone__island { position: absolute; left: 101.6px; top: 10.4px; width: 94.1px; height: 27.9px; border-radius: 14px; background: #000; }
-.phone__sig, .phone__wifi, .phone__bat { position: absolute; fill: currentColor; }
-.phone__sig { left: 215px; top: 19.3px; width: 16px; height: 10.4px; }
+.phone__signal, .phone__wifi, .phone__battery { position: absolute; fill: currentColor; }
+.phone__signal { left: 215px; top: 19.3px; width: 16px; height: 10.4px; }
 .phone__wifi { left: 236.3px; top: 19px; width: 14px; height: 10.3px; }
-.phone__bat { left: 255px; top: 18.8px; width: 22px; height: 10.2px; }
+.phone__battery { left: 255px; top: 18.8px; width: 22px; height: 10.2px; }
 .phone__home { position: absolute; left: 94px; top: 649px; width: 110px; height: 3.6px; border-radius: 2px; background: #111; z-index: 6; }
 
-.app-head { position: absolute; left: 0; top: 0; width: 100%; }
-.app-head__menu { position: absolute; left: 10.5px; top: 65.4px; width: 13.5px; }
-.app-head__menu i { display: block; height: 1.3px; background: #1a1a1a; border-radius: 1px; margin-bottom: 4.1px; }
-.app-head__logo { position: absolute; left: 0; right: 0; top: 59.1px; text-align: center; font: 500 18.6px/1 var(--serif); letter-spacing: .096em; text-indent: .096em; color: #111; }
-.app-head__icon { position: absolute; color: #1a1a1a; display: block; }
-.app-head__icon svg { display: block; width: 100%; height: auto; }
-.app-head__icon--mail { left: 240px; top: 61.6px; width: 14.5px; }
-.app-head__icon--mail b { position: absolute; right: -1.8px; top: -1.6px; width: 5.4px; height: 5.4px; border-radius: 50%; background: #e0493f; }
-.app-head__icon--cart { left: 271px; top: 62.4px; width: 15.5px; }
-.app-title { position: absolute; left: 8.5px; top: 109.6px; font: 400 19px/1 var(--serif); letter-spacing: -.012em; color: #111; white-space: nowrap; }
-.app-pills { position: absolute; left: 10.5px; top: 159.5px; display: flex; gap: 8px; }
-.app-pills .pill:first-child { width: 49.7px; padding: 0; }
-.anchor--phone { left: 19.9px; top: 227.7px; width: 254.2px; height: 335px; }
-.app-bio { position: absolute; left: 0; top: 0; width: 100%; }
-.app-bio__label { position: absolute; left: 66.5px; top: 573px; font: 400 18.2px/1 var(--serif); letter-spacing: -.01em; color: #151515; white-space: nowrap; }
-.app-bio__pill {
+/* ================================================================ app: the Hone app screen, one tall page scrolled by the timeline */
+.app__header { position: absolute; left: 0; top: 0; width: 100%; }
+.app__menu { position: absolute; left: 10.5px; top: 65.4px; width: 13.5px; }
+.app__menu-bar { display: block; height: 1.3px; background: #1a1a1a; border-radius: 1px; margin-bottom: 4.1px; }
+.app__logo { position: absolute; left: 0; right: 0; top: 59.1px; text-align: center; font: 500 18.6px/1 var(--serif); letter-spacing: .096em; text-indent: .096em; color: #111; }
+.app__icon { position: absolute; color: #1a1a1a; display: block; }
+.app__icon-glyph { display: block; width: 100%; height: auto; }
+.app__icon--mail { left: 240px; top: 61.6px; width: 14.5px; }
+.app__icon--cart { left: 271px; top: 62.4px; width: 15.5px; }
+.app__badge { position: absolute; right: -1.8px; top: -1.6px; width: 5.4px; height: 5.4px; border-radius: 50%; background: #e0493f; }
+.app__title { position: absolute; left: 8.5px; top: 109.6px; font: 400 19px/1 var(--serif); letter-spacing: -.012em; color: #111; white-space: nowrap; }
+.app__filters { position: absolute; left: 10.5px; top: 159.5px; display: flex; gap: 8px; }
+.app__figure { left: 19.9px; top: 227.7px; width: 254.2px; height: 335px; }
+.app__bio { position: absolute; left: 0; top: 0; width: 100%; }
+.app__bio-label { position: absolute; left: 66.5px; top: 573px; font: 400 18.2px/1 var(--serif); letter-spacing: -.01em; color: #151515; white-space: nowrap; }
+.app__bio-age {
   position: absolute; left: 172.4px; top: 573px; width: 59.5px; height: 21px; border-radius: 10.5px;
   display: grid; place-items: center; padding-top: 1px;
   background: #91baeb; box-shadow: inset 0 0 0 1px rgba(255,255,255,.35);
   font: 400 12.5px/1 var(--serif); color: #152640; white-space: nowrap;
 }
-.app-bio__delta { position: absolute; left: 100px; top: 602px; display: flex; align-items: center; gap: 5px; font: 400 11.2px/1 var(--sans); color: #5f8fd6; white-space: nowrap; }
-.app-bio__delta .tri { border-width: 0 3px 5px 3px; }
-.app-video { position: absolute; left: 0; top: 686.5px; width: 298px; height: 659.5px; overflow: hidden; border-radius: 40px 40px 0 0; background: #c9d5e3; }
-.app-video img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 0; }
-.app-reco { position: absolute; left: 0; top: 1346px; width: 298px; height: 1000px; background: var(--screen); }
-.app-reco__title { position: absolute; left: 12.5px; top: 92.5px; font: 400 28px/1 var(--serif); letter-spacing: .006em; color: #111; white-space: nowrap; }
-.app-reco__text { position: absolute; left: 13.5px; top: 135.6px; font: 400 14.75px/18.8px var(--sans); color: #9c9c9c; white-space: nowrap; letter-spacing: 0; }
-.reco-card {
-  position: absolute; left: 14.2px; top: 268px; width: 270.3px; height: 329.8px; border-radius: 14px; overflow: hidden;
-  background: linear-gradient(118deg, #dedede 0%, #e8e8e7 42%, #fafaf9 100%); opacity: 0;
-}
-.reco-card[data-slot="1"] { top: 618px; }
-.reco-card img { position: absolute; left: 23.4px; top: 21.6px; width: 223.5px; height: 223.5px; }
-.reco-card__name { position: absolute; left: 25.8px; top: 256.7px; font: 400 24.2px/1 var(--serif); letter-spacing: -.008em; color: #111; }
-.reco-card__kind { position: absolute; left: 25.8px; top: 290.6px; font: 400 15.2px/1 var(--serif); color: #111; }
+.app__bio-delta { position: absolute; left: 100px; top: 602px; display: flex; align-items: center; gap: 5px; font: 400 11.2px/1 var(--sans); color: #5f8fd6; white-space: nowrap; }
+.app__video { position: absolute; left: 0; top: 686.5px; width: 298px; height: 659.5px; overflow: hidden; border-radius: 40px 40px 0 0; background: #c9d5e3; }
+.app__video-image { width: 100%; height: 100%; object-fit: cover; object-position: 50% 0; }
+.app__reco { position: absolute; left: 0; top: 1346px; width: 298px; height: 1000px; background: var(--screen); }
+.app__reco-title { position: absolute; left: 12.5px; top: 92.5px; font: 400 28px/1 var(--serif); letter-spacing: .006em; color: #111; white-space: nowrap; }
+.app__reco-text { position: absolute; left: 13.5px; top: 135.6px; font: 400 14.75px/18.8px var(--sans); color: #9c9c9c; white-space: nowrap; letter-spacing: 0; }
+/* where a recommendation sits (the card itself is a .product) */
+.app__slot { position: absolute; left: 14.2px; top: 268px; width: 270.3px; height: 329.8px; }
+.app__slot--second { top: 618px; }
 
-/* ---------------------------------------------------------------- glass card (final frame) */
-.glass {
+/* ================================================================ health-card: the "Metabolic Health" glass card (final step) */
+.health-card {
   position: absolute; left: calc(50% + 178.5px); top: calc(50% - 320.1px); width: 445.8px; height: 639.3px;
-  border-radius: 22.6px; overflow: hidden; color: #fff; --ga: 0; --gb: 0px;
+  border-radius: 22.6px; overflow: hidden; color: #fff; --ga: 0; --gb: 0px; --frost-max: 24px;
   background: linear-gradient(170deg, rgba(205, 214, 212, calc(.12 * var(--ga))), rgba(205, 214, 212, calc(.15 * var(--ga))));
   backdrop-filter: blur(var(--gb)) saturate(calc(1 - .08 * var(--ga))) brightness(calc(1 + .02 * var(--ga)));
- 
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, calc(.24 * var(--ga))), 0 18px 60px rgba(20, 18, 8, calc(.18 * var(--ga)));
 }
-.glass__title { position: absolute; left: 28.5px; top: 31.3px; font: 400 18.5px/1 var(--serif); letter-spacing: .005em; white-space: nowrap; }
-.glass__pills { position: absolute; left: 30.2px; top: 79.1px; display: flex; gap: 8.3px; }
-.pill--glass { height: 45.2px; padding: 0 22.5px; gap: 11px; border-radius: 23px; background: rgba(255, 255, 255, .2); color: #fff; font-size: 16.3px; }
-.pill--glass:first-child { width: 67px; padding: 0; }
-.pill--glass .tri--down { border-width: 8.4px 5.1px 0 5.1px; }
-.pill--glass .tri--up { border-width: 0 5.1px 8.4px 5.1px; }
-.glass__bloom {
+.health-card__title { position: absolute; left: 28.5px; top: 31.3px; font: 400 18.5px/1 var(--serif); letter-spacing: .005em; white-space: nowrap; }
+.health-card__filters { position: absolute; left: 30.2px; top: 79.1px; display: flex; gap: 8.3px; }
+.health-card__bloom {
   position: absolute; left: 102.6px; top: 153.2px; width: 230px; height: 250px; border-radius: 50%;
   background: radial-gradient(closest-side, rgba(255, 255, 250, .26), rgba(230, 255, 220, .1) 55%, transparent 100%);
   opacity: var(--ga);
 }
-.anchor--card { left: 67.8px; top: 150.4px; width: 299.6px; height: 394.8px; }
-.glass__bar { position: absolute; left: 45.2px; top: 582.1px; width: 353.2px; height: 9px; display: flex; gap: 1.5px; }
-.glass__bar i { display: block; height: 100%; }
-.glass__bar-g { width: 279.4px; border-radius: 4.5px 1px 1px 4.5px; background: linear-gradient(#abd98a, #9ccf78); }
-.glass__bar-b { flex: 1; border-radius: 1px 4.5px 4.5px 1px; background: linear-gradient(#b4d3f5, #9fc3ee); }
-.glass__legend { position: absolute; left: 0; top: 602.9px; width: 100%; font: 400 11.4px/1 var(--sans); white-space: nowrap; }
-.glass__legend span { position: absolute; top: 0; display: flex; align-items: center; gap: 5px; }
-.glass__legend span:nth-child(1) { left: 47.5px; }
-.glass__legend span:nth-child(2) { left: 171.5px; }
-.glass__legend span:nth-child(3) { left: 271.1px; }
-.glass__legend em { font-style: normal; color: rgba(255, 255, 255, .55); margin-left: 1px; }
-.glass__legend .tri--down { border-width: 5.6px 3.4px 0 3.4px; }
-.glass__legend .tri--up { border-width: 0 3.4px 5.6px 3.4px; }
+.health-card__figure { left: 67.8px; top: 150.4px; width: 299.6px; height: 394.8px; }
+.health-card__bar { position: absolute; left: 45.2px; top: 582.1px; width: 353.2px; height: 9px; display: flex; gap: 1.5px; }
+.health-card__bar-segment { display: block; height: 100%; }
+.health-card__bar-segment--in-range { width: 279.4px; border-radius: 4.5px 1px 1px 4.5px; background: linear-gradient(#abd98a, #9ccf78); }
+.health-card__bar-segment--optimal { flex: 1; border-radius: 1px 4.5px 4.5px 1px; background: linear-gradient(#b4d3f5, #9fc3ee); }
+.health-card__legend { position: absolute; left: 0; top: 602.9px; width: 100%; font: 400 11.4px/1 var(--sans); white-space: nowrap; }
+.health-card__legend-item { position: absolute; top: 0; display: flex; align-items: center; gap: 5px; }
+.health-card__legend-item--low { left: 47.5px; }
+.health-card__legend-item--in-range { left: 171.5px; }
+.health-card__legend-item--optimal { left: 271.1px; }
+.health-card__legend-count { font-style: normal; color: rgba(255, 255, 255, .55); margin-left: 1px; }
 
-/* ---------------------------------------------------------------- after section */
-.after { position: relative; min-height: 100vh; background: #fff; display: grid; place-items: center; }
-.after__inner { text-align: center; }
-.after__title { margin-top: 20px; font: 400 49.5px/1.05 var(--serif); }
-.after__text { margin-top: 18px; font: 400 17.5px/22.8px var(--sans); color: #777; }
+/* ================================================================ photo-panel: the photo framed in the left column (experience 2) */
+.photo-panel { display: none; }
+.photo-panel__image { width: 100%; height: 100%; object-fit: cover; object-position: 100% 35%; transform-origin: 70% 40%; }
 
-/* ---------------------------------------------------------------- portrait / narrow */
-.is-portrait .copy { left: 30px; top: 58px; }
-.is-portrait .copy__title { font-size: 44px; }
-.is-portrait .steps { top: 72px; }
-.is-portrait .center { transform: translateY(calc(var(--fh) * .1px)) scale(.86); }
-.is-portrait .glass { left: calc(50% - 222.9px); }          /* centred: the body inside follows its anchor */
-.is-portrait .float--apob { left: calc(50% + 45px); }
+/* ================================================================ story: the copy of experience 1 (left) */
+.story { position: absolute; left: 62.5px; top: calc(50% - 97.5px); width: 520px; color: var(--ink); }
+.story__eyebrow { font: 400 12.5px/12px var(--serif); letter-spacing: .005em; height: 12px; white-space: nowrap; }
+.story__steps { position: relative; }
+.story__step { position: absolute; left: 0; top: 0; width: 100%; }
+.story__title {
+  position: absolute; left: -1px; top: 21.9px;
+  font: 400 50.5px/1 var(--serif); letter-spacing: 0; white-space: nowrap;
+}
+.story__text { position: absolute; left: 0; top: 98.2px; font: 400 18.5px/22.8px var(--sans); letter-spacing: -.02em; white-space: nowrap; }
+/* a masked line: the text slides in and out of its own box (the padding keeps descenders inside) */
+.story__line { display: block; overflow: hidden; padding: 0 .1em .26em 0; margin-bottom: -.26em; }
+.story__line--body { padding-bottom: .2em; margin-bottom: -.2em; }
+.story__line-text { display: inline-block; will-change: transform; }
 
-/* ---------------------------------------------------------------- no WebGL / boot failure: the composed copy only */
-.no-gl .center, .no-gl .steps, .no-gl .cta, .no-gl .copy__block:not([data-step="0"]) { display: none; }
-.no-gl .hiw { height: 100vh; }
+/* ================================================================ stepper: the step indicator (right) */
+/* dot heights/tops and label opacity/position are written every frame by renderUI */
+.stepper { position: absolute; right: 21.5px; top: calc(50% + 2.5px); width: 0; height: 0; color: var(--ink); }
+.stepper__rail { position: absolute; right: 0; top: 0; width: 3.5px; }
+.stepper__dot { position: absolute; right: 0; width: 3.5px; height: 3.5px; border-radius: 2px; background: var(--dot); }
+.stepper__labels { position: absolute; right: 16px; top: 0; }
+.stepper__label {
+  position: absolute; right: 0; top: 0; translate: 0 -50%;
+  display: flex; gap: 9px; white-space: nowrap;
+  font: 400 15.1px/1 var(--serif); letter-spacing: -.003em; padding-top: 1.6px;
+}
+.stepper__number { font-variant-numeric: lining-nums; }
 
-/* ---------------------------------------------------------------- debug overlay (dev) */
-.ref-overlay { position: fixed; inset: 0; z-index: 50; pointer-events: none; background-size: 100% 100%; opacity: .5; mix-blend-mode: normal; display: none; }
-.ref-overlay.is-on { display: block; }
+/* ================================================================ cta */
+.cta {
+  position: absolute; left: calc(50% - 55px); bottom: 24.2px; width: 110px; height: 44.4px;
+  display: grid; place-items: center; border-radius: 22.2px; background: var(--lime);
+  color: #111; font: 400 13.5px/1 var(--serif); text-decoration: none; padding-top: 1px;
+  pointer-events: auto; opacity: 0; transition: scale .35s cubic-bezier(.2,.7,.2,1);
+  --cy: 10px; translate: 0 var(--cy);            /* the timeline slides it via --cy, so :hover scale stays free */
+}
+.cta:hover { scale: 1.04; }
+.cta:focus-visible { outline: 2px solid #111; outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) {
   .cta { transition: none; }
 }
 
-/* ================================================================ split layout (key 2)
-   The stage stays the same sticky full-viewport layer; its centre column is re-placed into the left
-   57% by JS (from src/variants.js), and .rail, a column of text blocks pinned to moments of the
-   timeline, scrolls over the right side. Every rail size is reference px x --u. */
-.rail, .panel { display: none; }
-.v2 .copy, .v2 .cta { display: none; }
-.v2 .steps__label span:last-child { display: none; }
-
-.v2 .rail {
-  display: block; position: absolute; top: 0; left: 57.13%; right: 0; height: 100%; z-index: 4;
-  pointer-events: none; color: #000;
-}
-.rail__line { position: absolute; left: 0; top: var(--line-top, 0px); width: 1px; height: var(--line-h, 0px); background: #e4e4e4; }
-.rail__block { position: absolute; left: calc(21px * var(--u)); top: 0; width: calc(560px * var(--u)); }
-.rail__badge {
+/* ================================================================ chapters: the scrolling right column of experience 2
+   Each item is placed (top) by layoutRail() so it reaches the middle of the screen when its step starts,
+   and held there (translate) by pinRail() while that step plays. Lengths are reference px x --u. */
+.chapters { display: none; }
+.chapters__line { position: absolute; left: 0; top: var(--line-top, 0px); width: 1px; height: var(--line-h, 0px); background: #e4e4e4; }
+.chapters__item { position: absolute; left: calc(21px * var(--u)); top: 0; width: calc(560px * var(--u)); }
+.chapters__badge {
   position: absolute; left: calc(-68px * var(--u)); top: calc(-9.3px * var(--u));
   width: calc(37px * var(--u)); height: calc(30.5px * var(--u)); border-radius: calc(16px * var(--u));
   display: grid; place-items: center; padding-top: calc(1px * var(--u));
   background: #fef7b7; color: #111; font: 400 calc(13.5px * var(--u))/1 var(--serif);
 }
-.rail__node {
+.chapters__node {
   position: absolute; left: calc(-23.5px * var(--u)); top: calc(3.6px * var(--u));
   width: calc(5px * var(--u)); height: calc(5px * var(--u)); border-radius: 50%; background: #d4d4d4;
 }
-.rail__eyebrow { font: 400 calc(12.5px * var(--u))/calc(12px * var(--u)) var(--serif); letter-spacing: .005em; white-space: nowrap; }
-.rail__title { margin-top: calc(28px * var(--u)); font: 400 calc(44px * var(--u))/1 var(--serif); white-space: nowrap; }
-.rail__text { margin-top: calc(26px * var(--u)); font: 400 calc(18.5px * var(--u))/calc(23px * var(--u)) var(--sans); letter-spacing: -.02em; white-space: nowrap; }
-.rail__block--more .rail__text { margin-top: 0; }
-.rail__list { list-style: none; margin: calc(33px * var(--u)) 0 0; padding: 0; }
-.rail__list li { display: flex; align-items: center; gap: calc(8.5px * var(--u)); font: 400 calc(17.8px * var(--u))/calc(26px * var(--u)) var(--serif); white-space: nowrap; }
-.rail__list li svg { width: calc(11px * var(--u)); height: auto; flex: none; color: #222; }
+.chapters__eyebrow { font: 400 calc(12.5px * var(--u))/calc(12px * var(--u)) var(--serif); letter-spacing: .005em; white-space: nowrap; }
+.chapters__title { margin-top: calc(28px * var(--u)); font: 400 calc(44px * var(--u))/1 var(--serif); white-space: nowrap; }
+.chapters__text { margin-top: calc(26px * var(--u)); font: 400 calc(18.5px * var(--u))/calc(23px * var(--u)) var(--sans); letter-spacing: -.02em; white-space: nowrap; }
+.chapters__item--continued .chapters__text { margin-top: 0; }
+.chapters__list { list-style: none; margin: calc(33px * var(--u)) 0 0; padding: 0; }
+.chapters__list-item { display: flex; align-items: center; gap: calc(8.5px * var(--u)); font: 400 calc(17.8px * var(--u))/calc(26px * var(--u)) var(--serif); white-space: nowrap; }
+.chapters__check { width: calc(11px * var(--u)); height: auto; flex: none; color: #222; }
 
-/* the photo, framed in the left column for the final step */
-.v2 .panel { display: block; position: absolute; border-radius: 14px; overflow: hidden; opacity: 0; will-change: opacity, transform; }
-.panel img { width: 100%; height: 100%; object-fit: cover; object-position: 100% 35%; transform-origin: 70% 40%; }
+/* ================================================================ outro: the white section after the story */
+.outro { position: relative; min-height: 100vh; background: #fff; display: grid; place-items: center; }
+.outro__inner { text-align: center; }
+.outro__eyebrow { font: 400 12.5px/12px var(--serif); letter-spacing: .005em; height: 12px; white-space: nowrap; }
+.outro__title { margin-top: 20px; font: 400 49.5px/1.05 var(--serif); }
+.outro__text { margin-top: 18px; font: 400 17.5px/22.8px var(--sans); color: #777; }
 
+/* ================================================================ ref-overlay: the reference frame at 50% (dev only, key O) */
+.ref-overlay { position: fixed; inset: 0; z-index: 50; pointer-events: none; background-size: 100% 100%; opacity: .5; mix-blend-mode: normal; display: none; }
+.ref-overlay--visible { display: block; }
+
+/* ================================================================ page states (modifiers of .page, on <html>) */
+
+/* page--portrait: the visual stays centred, slightly smaller, under the copy */
+.page--portrait .story { left: 30px; top: 58px; }
+.page--portrait .story__title { font-size: 44px; }
+.page--portrait .stepper { top: 72px; }
+.page--portrait .frame__center { transform: translateY(calc(var(--fh) * .1px)) scale(.86); }
+.page--portrait .health-card { left: calc(50% - 222.9px); }          /* centred: the body inside follows its anchor */
+.page--portrait .frame__float--reading { left: calc(50% + 45px); }
+
+/* page--fallback: no WebGL / boot failure, the composed copy only */
+.page--fallback .frame__center, .page--fallback .stepper, .page--fallback .cta, .page--fallback .story__step:not(.story__step--first) { display: none; }
+.page--fallback .how-it-works { height: 100vh; }
+/* experience 2 without WebGL: the chapters are never laid out, so show the first one, centred */
+.page--fallback.page--split .chapters__line,
+.page--fallback.page--split .chapters__item ~ .chapters__item { display: none; }
+.page--fallback.page--split .chapters__item { top: 44%; translate: 0 -50%; }
+
+/* page--split: experience 2. The stage stays the same sticky full-viewport layer; its centre column is
+   re-placed into the left 57% by JS (applyGeometry, from src/variants.js), and .chapters scrolls over
+   the right side. */
+.page--split .story, .page--split .cta { display: none; }
+.page--split .stepper__number { display: none; }
+.page--split .chapters {
+  display: block; position: absolute; top: 0; left: 57.13%; right: 0; height: 100%; z-index: 4;
+  pointer-events: none; color: #000;
+}
+.page--split .photo-panel { display: block; position: absolute; border-radius: 14px; overflow: hidden; opacity: 0; will-change: opacity, transform; }
 /* the recommendations become a carousel: a 0.783x slot with the next card peeking on the right */
-.v2 .app-reco__title { top: 106.6px; }
-.v2 .app-reco__text { top: 149.7px; }
-.v2 .reco-card { width: 211.7px; height: 258.3px; top: 307.9px; border-radius: 11px; }
-.v2 .reco-card[data-slot="1"] { left: 241.9px; top: 307.9px; }
-.v2 .reco-card img { left: 18.3px; top: 16.9px; width: 175px; height: 175px; }
-.v2 .reco-card__name { left: 20.2px; top: 201px; font-size: 19.9px; }
-.v2 .reco-card__kind { left: 20.2px; top: 227.5px; font-size: 12.2px; }
+.page--split .app__reco-title { top: 106.6px; }
+.page--split .app__reco-text { top: 149.7px; }
+.page--split .app__slot { width: 211.7px; height: 258.3px; top: 307.9px; }
+.page--split .app__slot--second { left: 241.9px; top: 307.9px; }
+.page--split .product--in-app { border-radius: 11px; }
+.page--split .product--in-app .product__image { left: 18.3px; top: 16.9px; width: 175px; height: 175px; }
+.page--split .product--in-app .product__name { left: 20.2px; top: 201px; font-size: 19.9px; }
+.page--split .product--in-app .product__kind { left: 20.2px; top: 227.5px; font-size: 12.2px; }
 
-/* portrait: the visual keeps the centred layout, the text blocks pass over it as frosted cards */
-.is-portrait.v2 .rail { left: 0; }
-.is-portrait.v2 .rail__line, .is-portrait.v2 .rail__node, .is-portrait.v2 .rail__badge { display: none; }
-.is-portrait.v2 .rail__block {
+/* page--split + page--portrait: the visual keeps the centred layout, the chapters pass over it as frosted cards */
+.page--portrait.page--split .chapters { left: 0; }
+.page--portrait.page--split .chapters__line, .page--portrait.page--split .chapters__node, .page--portrait.page--split .chapters__badge { display: none; }
+.page--portrait.page--split .chapters__item {
   left: calc(24px * var(--u)); width: auto; right: calc(24px * var(--u)); padding: calc(22px * var(--u));
   border-radius: calc(18px * var(--u)); background: rgba(255, 255, 255, .84);
   backdrop-filter: blur(14px); box-shadow: 0 10px 40px rgba(0, 0, 0, .06);
 }
-.is-portrait.v2 .rail__text, .is-portrait.v2 .rail__list li { white-space: normal; }
-.is-portrait.v2 .rail__text br { display: none; }
+.page--portrait.page--split .chapters__text, .page--portrait.page--split .chapters__list-item { white-space: normal; }
+.page--portrait.page--split .chapters__text br { display: none; }

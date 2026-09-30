@@ -27,7 +27,7 @@ page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') 
 page.on('pageerror', (e) => errors.push(`[pageerror] ${e.message}`))
 
 await page.goto(URL_, { waitUntil: 'networkidle' })
-await page.waitForFunction(() => window.__hone && document.documentElement.classList.contains('is-ready'), null, { timeout: 20000 })
+await page.waitForFunction(() => window.__hone && document.documentElement.classList.contains('page--ready'), null, { timeout: 20000 })
 await page.evaluate(() => { window.__hone.scene.still = true })
 await page.waitForTimeout(3600)   // let the intro finish composing the figure
 

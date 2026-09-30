@@ -8,7 +8,7 @@ const p = await b.newPage({ viewport: { width: 1506, height: 845 } })
 const errors = []
 p.on('pageerror', (e) => errors.push(e.message)); p.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()) })
 await p.goto('http://localhost:5230/?v=2', { waitUntil: 'networkidle' })
-await p.waitForFunction(() => window.__hone && document.documentElement.classList.contains('is-ready'))
+await p.waitForFunction(() => window.__hone && document.documentElement.classList.contains('page--ready'))
 await p.waitForTimeout(3200)
 // sampler: every rAF, record scrollY, tl time and each block's rect top
 await p.evaluate(() => {

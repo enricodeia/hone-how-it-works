@@ -398,7 +398,7 @@ export class FigureScene {
   #buildMarkers() {
     this.markers = this.meta.markers.map((m) => {
       const el = document.createElement('i')
-      el.className = 'marker'
+      el.className = 'markers__dot'
       this.markerHost.appendChild(el)
       return { el, p: m.p, a: m.a, b: m.b }
     })

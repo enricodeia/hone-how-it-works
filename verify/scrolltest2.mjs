@@ -3,7 +3,7 @@ import { chromium } from 'playwright'
 const b = await chromium.launch({ args: ['--use-angle=metal', '--enable-gpu-rasterization', '--ignore-gpu-blocklist'] })
 const p = await b.newPage({ viewport: { width: 1506, height: 845 } })
 await p.goto('http://localhost:5230/?v=2', { waitUntil: 'networkidle' })
-await p.waitForFunction(() => window.__hone && document.documentElement.classList.contains('is-ready'))
+await p.waitForFunction(() => window.__hone && document.documentElement.classList.contains('page--ready'))
 await p.waitForTimeout(3200)
 const holds = await p.evaluate(() => {
   const h = window.__hone, vh = innerHeight

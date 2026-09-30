@@ -28,16 +28,33 @@ Dev keys: `Shift`+`1`–`9` jump to each reference frame of the current experien
 reference overlay at 50%. Checks: `VARIANT=2 npm run shots`, `node verify/scrolltest2.mjs`
 (hold stability + forward/backward consistency with real wheel scrolling).
 
+## Code conventions
+
+- **BEM** for every class: `block`, `block__element` (always one level), `block--modifier`.
+  Placement goes on the parent's element, appearance on the block (a mix):
+  `<div class="app__slot product product--in-app">`. Page-wide states are modifiers of `.page` on
+  `<html>`: `page--ready`, `page--split` (experience 2), `page--portrait`, `page--fallback` (no WebGL).
+  The full rules are at the top of `src/styles.css`.
+- **Classes style, `data-*` attributes drive JavaScript.** No script selects by class name; values the
+  scripts need from CSS are custom properties (e.g. `--frost-max`, the backdrop blur of each card).
+- **`npm run lint:bem`** checks every class in `index.html`, `src/styles.css` and `src/*.js` against those
+  rules (names, modifiers without a base, elements outside their block, dead or cross-block selectors,
+  JS selecting by class).
+- **Refactor safety net:** `node verify/dom-diff.mjs <tag>` shoots the DOM layers (canvas hidden) at every
+  reference frame of both experiences, and `python3 verify/dom-compare.py <base>,<base2> <tag>` diffs them
+  with a 1 px tolerance for compositing jitter.
+
 ## How it is put together
 
 | Layer (bottom → top) | What |
 |---|---|
-| `.bg` | tinted blob sets per step (blue, pink, sky, become) and the Main bg photo |
-| `.wide--under` | the glass "Metabolic Health" card and the iPhone mockup (DOM) |
-| `canvas.gl` | three.js: the particle man + the ambient dust |
-| `.wide--over` | Blood / ApoB / product cards, body markers, copy, step indicator, CTA |
+| `.backdrop` | tinted blob layers per step (blue, pink, sky, become, v2*) and the Main bg photo |
+| `.frame--under` | the framed photo (experience 2), the `health-card` and the `phone` with its `app` |
+| `canvas.particles` | three.js: the particle man + the ambient dust |
+| `.frame--over` | markers, the floating cards (`sample`, `reading`, `product`), `story` copy, `stepper`, `cta` |
+| `.chapters` | experience 2 only: the scrolling right column |
 
-- **Reference px.** Everything inside `.wide` is written in the px of the 1506 × 845 viewport the
+- **Reference px.** Everything inside `.frame` is written in the px of the 1506 × 845 viewport the
   frames were captured at, and scaled by `--u`, so the layout lands on the screenshots at any size.
 - **The particle man** (`tools/build_figure.py`) is extracted from `01.png`: every dot of the
   figure (position, size, tone), merged clusters split with k-means, plus a density-matched fill

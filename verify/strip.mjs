@@ -8,7 +8,7 @@ const [name, ...ts] = process.argv.slice(2)
 const b = await chromium.launch({ args: ['--use-angle=metal', '--enable-gpu-rasterization', '--ignore-gpu-blocklist'] })
 const p = await b.newPage({ viewport: { width: 1506, height: 845 }, deviceScaleFactor: 1 })
 await p.goto(process.env.URL || 'http://localhost:5230/', { waitUntil: 'networkidle' })
-await p.waitForFunction(() => window.__hone && document.documentElement.classList.contains('is-ready'))
+await p.waitForFunction(() => window.__hone && document.documentElement.classList.contains('page--ready'))
 await p.evaluate(() => { window.__hone.scene.still = true }); await p.waitForTimeout(3400)
 const files = []
 for (const t of ts) { await p.evaluate((t) => window.__hone.scrollToTime(+t), t); await p.waitForTimeout(1100); const f = `${OUT}${name}-${t}.png`; await p.screenshot({ path: f }); files.push(f) }

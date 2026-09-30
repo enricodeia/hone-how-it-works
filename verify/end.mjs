@@ -6,7 +6,7 @@ const OUT = fileURLToPath(new URL('./out/', import.meta.url))
 const b = await chromium.launch({ args: ['--use-angle=metal', '--enable-gpu-rasterization', '--ignore-gpu-blocklist'] })
 const p = await b.newPage({ viewport: { width: 1506, height: 845 }, deviceScaleFactor: 1 })
 await p.goto('http://localhost:5230/', { waitUntil: 'networkidle' })
-await p.waitForFunction(() => window.__hone && document.documentElement.classList.contains('is-ready'))
+await p.waitForFunction(() => window.__hone && document.documentElement.classList.contains('page--ready'))
 await p.evaluate(() => { window.__hone.scene.still = true }); await p.waitForTimeout(3400)
 const files = []
 for (const extra of [0, 0.25, 0.5, 0.75]) {

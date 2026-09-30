@@ -16,12 +16,12 @@ const REF_W = 1506, REF_H = 845
 const root = document
 const html = document.documentElement
 const stage = root.querySelector('[data-stage]')
-const section = root.querySelector('.hiw')
+const section = root.querySelector('[data-section]')
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 // ------------------------------------------------------------------ experience (keys 1 / 2)
 const content = readVariant()
-html.classList.toggle('v2', content.id === 2)
+html.classList.toggle('page--split', content.id === 2)
 let geom = VARIANTS[1]
 
 // ------------------------------------------------------------------ layout unit
@@ -36,7 +36,7 @@ function layout() {
   html.style.setProperty('--u', unit)
   html.style.setProperty('--fw', vw / unit)
   html.style.setProperty('--fh', vh / unit)
-  html.classList.toggle('is-portrait', portrait)
+  html.classList.toggle('page--portrait', portrait)
   // the split geometry needs a landscape viewport; portrait keeps the centred visual
   return content.id === 2 && !portrait ? VARIANTS[2] : VARIANTS[1]
 }
@@ -56,24 +56,24 @@ function applyGeometry(g) {
   put(root.querySelector('[data-anchor="hero"]'), H.cx - H.w / 2, H.cy - hh / 2, H.w, hh)
   put(root.querySelector('[data-phone]'), g.phone.left, g.phone.top)
   const C = g.cards
-  put(root.querySelector('.float--blood'), C.blood.left, C.blood.top)
-  put(root.querySelector('.float--apob'), C.apob.left, C.apob.top)
-  put(root.querySelector('.float--prog'), C.prog.left, C.prog.top)
-  put(root.querySelector('.float--testo'), C.testo.left, C.testo.top)
-  put(root.querySelector('.float--estra'), C.estra.left, C.estra.top)
+  put(root.querySelector('[data-float="blood"]'), C.blood.left, C.blood.top)
+  put(root.querySelector('[data-float="apob"]'), C.apob.left, C.apob.top)
+  put(root.querySelector('[data-float="prog"]'), C.prog.left, C.prog.top)
+  put(root.querySelector('[data-float="testo"]'), C.testo.left, C.testo.top)
+  put(root.querySelector('[data-float="estra"]'), C.estra.left, C.estra.top)
   put(root.querySelector('[data-glass]'), C.glass.left, C.glass.top)
   const P = g.panel
   put(root.querySelector('[data-panel]'), P.cx - P.w / 2, P.cy - P.h / 2, P.w, P.h)
 }
 applyGeometry(geom)
 // the marker card is ApoB in experience 1, Estradiol in experience 2
-root.querySelector('.apob__label').textContent = content.apob.label
+root.querySelector('[data-apob-label]').textContent = content.apob.label
 root.querySelector('[data-apob-unit]').textContent = content.apob.unitFrom
-root.querySelectorAll('.rail__list li').forEach((li) => li.insertAdjacentHTML('afterbegin', icon(faCheck).html.join('')))
+root.querySelectorAll('[data-check]').forEach((li) => li.insertAdjacentHTML('afterbegin', icon(faCheck, { classes: ['chapters__check'] }).html.join('')))
 
 // ------------------------------------------------------------------ icons
-root.querySelector('[data-fa="envelope"]').insertAdjacentHTML('afterbegin', icon(faEnvelope).html.join(''))
-root.querySelector('[data-fa="cart"]').insertAdjacentHTML('afterbegin', icon(faCartShopping).html.join(''))
+root.querySelector('[data-fa="envelope"]').insertAdjacentHTML('afterbegin', icon(faEnvelope, { classes: ['app__icon-glyph'] }).html.join(''))
+root.querySelector('[data-fa="cart"]').insertAdjacentHTML('afterbegin', icon(faCartShopping, { classes: ['app__icon-glyph'] }).html.join(''))
 
 // ------------------------------------------------------------------ boot
 async function boot() {
@@ -175,7 +175,7 @@ async function boot() {
   const gapsB = root.querySelectorAll('[data-apob-gap="b"], [data-apob-gap="c"]')
   const dots = [...root.querySelectorAll('[data-dot]')]
   const labels = [...root.querySelectorAll('[data-label]')]
-  const floats = [...root.querySelectorAll('.float')].map((el) => ({ el, par: +el.dataset.par || 1, fly: el.hasAttribute('data-fly') }))
+  const floats = [...root.querySelectorAll('[data-float]')].map((el) => ({ el, par: +el.dataset.par || 1, fly: el.hasAttribute('data-fly') }))
   // red -> green through OKLCH (a clean warm-to-green arc, not the muddy khaki of an RGB blend)
   const oklch = (a, b, t) => (t <= 0 ? a : t >= 1 ? b : `color-mix(in oklch, ${a}, ${b} ${(t * 100).toFixed(1)}%)`)
   const COLORS = { blue: '#87b7ee', green: '#8fbf6d', red: '#da4f49' }
@@ -237,8 +237,8 @@ async function boot() {
   }
 
   // ---------------------------------------------------------------- intro: the figure composes itself
-  const introLines = [...root.querySelectorAll('.copy__block[data-step="0"] .ln > span')]
-  const eyebrow = root.querySelector('.copy .copy__eyebrow')
+  const introLines = [...root.querySelectorAll('[data-step="0"] [data-line]')]
+  const eyebrow = root.querySelector('[data-copy-eyebrow]')
   const steps = root.querySelector('[data-steps]')
   if (reduced) {
     scene.U.intro = 1; scene.U.dustIntro = 1
@@ -318,11 +318,11 @@ async function boot() {
       if (e.target.closest('input, textarea')) return
       const m = /^Digit([1-9])$/.exec(e.code)
       if (e.shiftKey && m && +m[1] <= FRAMES.length) { refIdx = +m[1] - 1; scrollToTime(FRAMES[refIdx]); ov.style.backgroundImage = refUrl(refIdx) }
-      if (e.key === 'o' || e.key === 'O') { ov.classList.toggle('is-on'); ov.style.backgroundImage = refUrl(refIdx) }
+      if (e.key === 'o' || e.key === 'O') { ov.classList.toggle('ref-overlay--visible'); ov.style.backgroundImage = refUrl(refIdx) }
     })
   }
-  html.classList.add('is-ready')
+  html.classList.add('page--ready')
 }
 
 // if anything fails (no WebGL, a missing file) show the composed copy instead of a half-built page
-boot().catch((e) => { console.error(e); html.classList.add('is-ready', 'no-gl') })
+boot().catch((e) => { console.error(e); html.classList.add('page--ready', 'page--fallback') })
