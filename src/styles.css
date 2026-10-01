@@ -113,7 +113,7 @@ img { display: block; }
 .frame__float--reading { left: calc(50% + 75.3px); top: calc(50% + 12px); width: 256.8px; height: 101.6px; }
 .frame__float--progesterone { left: calc(50% - 312.5px); top: calc(50% - 119.8px); width: 190.5px; height: 238.7px; }
 .frame__float--testosterone { left: calc(50% + 116.7px); top: calc(50% - 294.5px); width: 189.8px; height: 237.2px; }
-.frame__float--estradiol { left: calc(50% + 116.7px); top: calc(50% + 85.8px); width: 189.8px; height: 238.7px; }
+.frame__float--peptides { left: calc(50% + 116.7px); top: calc(50% + 85.8px); width: 189.8px; height: 238.7px; }
 
 /* ================================================================ figure-anchor: an invisible box the particle man is drawn on */
 /* FigureScene measures it every frame; its position comes from the element it is mixed with */
@@ -155,7 +155,7 @@ img { display: block; }
 .sample__image { position: absolute; left: 32.9px; top: 14.1px; width: 124.7px; height: 210px; }
 .sample__name { position: absolute; left: 20.4px; top: 233.4px; font: 400 20.7px/1 var(--serif); letter-spacing: -.005em; white-space: nowrap; color: #111; }
 
-/* ================================================================ reading: a lab value with its range bar (ApoB / Estradiol) */
+/* ================================================================ reading: a lab value with its range bar (ApoB) */
 .reading__label { position: absolute; left: 25.2px; top: 31.7px; font: 400 21.4px/1 var(--serif); color: #111; }
 .reading__value { position: absolute; left: 131.7px; top: 20.6px; display: flex; align-items: baseline; white-space: nowrap; color: #111; }
 .reading__number { font: 400 34px/1 var(--serif); letter-spacing: -.02em; font-variant-numeric: lining-nums tabular-nums; }
@@ -417,3 +417,50 @@ img { display: block; }
 }
 .page--portrait.page--split .chapters__text, .page--portrait.page--split .chapters__list-item { white-space: normal; }
 .page--portrait.page--split .chapters__text br { display: none; }
+
+/* ================================================================ perf-monitor: FPS / CPU / GPU graphs (top right) */
+.perf-monitor {
+  position: fixed; top: 12px; right: 12px; z-index: 60; width: 252px; padding: 6px 6px 8px;
+  background: rgba(0, 0, 34, .9); color: #cfe; border-radius: 6px;
+  font: 500 10.5px/1.35 ui-monospace, 'SF Mono', Menlo, monospace; pointer-events: none;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .18);
+}
+.perf-monitor[hidden] { display: none; }
+.perf-monitor__graphs { display: flex; gap: 2px; }
+.perf-monitor__graph { display: block; width: 80px; height: 48px; }
+.perf-monitor__stats { margin: 7px 2px 0; display: grid; gap: 1px; }
+.perf-monitor__row { display: flex; justify-content: space-between; }
+.perf-monitor__key { color: #8aa; }
+.perf-monitor__value { margin: 0; color: #fff; font-variant-numeric: tabular-nums; }
+.perf-monitor__modes { margin: 7px 2px 0; display: flex; justify-content: space-between; color: #8aa; }
+.perf-monitor__mode--active { color: #0ff; }
+.perf-monitor__kbd { display: inline-block; min-width: 15px; padding: 1px 3px; border: 1px solid currentColor; border-radius: 3px; text-align: center; font: inherit; }
+
+/* ================================================================ export-panel: the V panel (bottom right) */
+.export-panel {
+  position: fixed; right: 16px; bottom: 16px; z-index: 61; width: 300px; padding: 18px 18px 16px;
+  background: rgba(255, 255, 255, .96); color: #111; border-radius: 14px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, .04), 0 18px 48px rgba(0, 0, 0, .14);
+  backdrop-filter: blur(12px); font: 400 13px/1.4 var(--sans);
+}
+.export-panel[hidden] { display: none; }
+.export-panel__header { display: flex; align-items: center; justify-content: space-between; }
+.export-panel__title { font: 400 24px/1 var(--serif); }
+.export-panel__close { width: 28px; height: 28px; border: 0; border-radius: 50%; background: #f0f0ee; color: #111; font: 400 18px/1 var(--sans); cursor: pointer; }
+.export-panel__lead { margin-top: 10px; color: #666; }
+.export-panel__group { margin: 14px 0 0; padding: 0; border: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.export-panel__legend { width: 100%; margin-bottom: 6px; padding: 0; font: 400 12.5px/1 var(--serif); letter-spacing: .02em; text-transform: uppercase; color: #555; }
+.export-panel__option { position: relative; display: inline-flex; align-items: center; gap: 6px; padding: 7px 11px; border-radius: 999px; background: #f2f2f0; cursor: pointer; }
+.export-panel__option:has(.export-panel__input:checked) { background: #202020; color: #fff; }
+.export-panel__input { margin: 0; accent-color: #202020; }
+/* the pill is the control: the native radio stays focusable and readable by assistive tech, just not drawn */
+.export-panel__input--radio { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+.export-panel:focus { outline: none; }
+.export-panel__check { margin-top: 14px; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.export-panel__download {
+  margin-top: 16px; width: 100%; height: 44px; border: 0; border-radius: 22px; background: var(--lime); color: #111;
+  font: 400 15px/1 var(--serif); cursor: pointer;
+}
+.export-panel__download:disabled { opacity: .5; cursor: default; }
+.export-panel__close:focus-visible, .export-panel__download:focus-visible, .export-panel__option:focus-within { outline: 2px solid #111; outline-offset: 2px; }
+.export-panel__status { margin-top: 10px; min-height: 18px; color: #666; font-size: 12px; }

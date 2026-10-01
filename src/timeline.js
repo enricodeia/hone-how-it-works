@@ -53,7 +53,7 @@ export function buildTimeline({ root, scene, state, geom, content }) {
   const video = $('[data-video]')
   const home = $('[data-phone-home]')
   const slots = $$('[data-slot]')
-  const prog = $('[data-product="prog"]'), testo = $('[data-product="testo"]'), estra = $('[data-product="estra"]')
+  const prog = $('[data-product="prog"]'), testo = $('[data-product="testo"]'), peptides = $('[data-product="peptides"]')
   const glass = $('[data-glass]')
   const panel = $('[data-panel]'), panelImg = panel.querySelector('img')
   const anchorPhone = $('[data-anchor="phone"]')
@@ -91,9 +91,9 @@ export function buildTimeline({ root, scene, state, geom, content }) {
   })
   gsap.set(appUI, { opacity: 0 })
   gsap.set(content_, { y: 0 })
-  gsap.set([blood, apob, prog, testo, estra, glass], { '--ga': 0, '--gb': '0px' })
-  ;[blood, apob, prog, testo, estra, glass].forEach((el) => gsap.set(parts(el), { opacity: 0 }))
-  gsap.set([prog, testo, estra], { transformOrigin: '0px 0px' })
+  gsap.set([blood, apob, prog, testo, peptides, glass], { '--ga': 0, '--gb': '0px' })
+  ;[blood, apob, prog, testo, peptides, glass].forEach((el) => gsap.set(parts(el), { opacity: 0 }))
+  gsap.set([prog, testo, peptides], { transformOrigin: '0px 0px' })
   gsap.set(markers, { scale: 0 })
   gsap.set(cta, { autoAlpha: 0 })        // hidden = not clickable, not focusable; slides via --cy (CSS)
   gsap.set(panel, { opacity: 0, scale: 0.94 })
@@ -180,7 +180,7 @@ export function buildTimeline({ root, scene, state, geom, content }) {
   t = T.products
   cardIn(prog, t, 0.85, at(S.prod))
   cardIn(testo, t + 0.14, 0.85, at(S.prod))
-  cardIn(estra, t + 0.28, 0.85, at(S.prod))
+  cardIn(peptides, t + 0.28, 0.85, at(S.prod))
 
   // ================================================================ 06 → 07  Build: the card goes into the UI
   t = T.toBuild
@@ -193,7 +193,7 @@ export function buildTimeline({ root, scene, state, geom, content }) {
   tl.to(content_, { y: SCROLL.s07, duration: 0.85, ease: 'power2.inOut' }, t)
   tl.to(home, { opacity: 0, duration: 0.3 }, t + 0.5)
   cardOut(testo, t, 0.55, { x: -38, scale: S.prod * 0.94 })
-  cardOut(estra, t + 0.06, 0.55, { x: -38, scale: S.prod * 0.94 })
+  cardOut(peptides, t + 0.06, 0.55, { x: -38, scale: S.prod * 0.94 })
   tl.to(PAR, { prog: 0, duration: 0.3 }, t)
   // the card itself becomes the recommendation: no cross-fade, so nothing is ever seen twice.
   // autoRound:false keeps font-size / box / radius continuous (no whole-px snapping mid-flight).

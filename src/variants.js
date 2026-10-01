@@ -14,6 +14,9 @@
 export const V2_LEFT = { pct: 26.76, x: 403 }        // visual centre of the left column
 export const V2_RAIL_PCT = 57.13                     // the divider / right column start
 
+// the lab reading on the marker card: high and red at Baseline, settled and green at Become
+const APOB = { label: 'ApoB', from: { num: 155, fill: 0.74, mark: 0.68 }, to: { num: 70, fill: 0.333, mark: 0.135 }, unitFrom: 'mg/dL', unitTo: 'pg/mL' }
+
 export const VARIANTS = {
   1: {
     id: 1,
@@ -22,7 +25,7 @@ export const VARIANTS = {
     reco: { r: 1 },
     cards: null,                                  // CSS defaults
     scale: { blood: 1, apob: 1, prod: 1, glass: 1 },
-    apob: { label: 'ApoB', from: { num: 155, fill: 0.74, mark: 0.68 }, to: { num: 70, fill: 0.333, mark: 0.135 }, unitFrom: 'mg/dL', unitTo: 'pg/mL' },
+    apob: APOB,
     apobBecome: { scale: 0.867, x: -18, y: -15.5 },
     bg: { start: 'blue', baseline: 'pink', blueprint: null, build: 'sky', become: 'become' },
     dustX: 0,
@@ -39,12 +42,12 @@ export const VARIANTS = {
       apob: { left: 420.6, top: 384.7 },
       prog: { left: 116, top: 310.1 },
       testo: { left: 502.5, top: 152.6 },        // product cards scale from their top-left corner
-      estra: { left: 502.5, top: 495.6 },
+      peptides: { left: 502.5, top: 495.6 },
       glass: { left: 401 - 222.9, top: 417.5 - 319.65 },
     },
     panel: { cx: 401, cy: 417.5, w: 678, h: 650 },
     scale: { blood: 0.847, apob: 0.826, prod: 0.908, glass: 0.754 },
-    apob: { label: 'Estradiol', from: { num: 61, fill: 0.32, mark: 0.18 }, to: { num: 118, fill: 0.58, mark: 0.5 }, unitFrom: 'pg/mL', unitTo: 'pg/mL' },
+    apob: APOB,                                   // the same ApoB reading as experience 1
     apobBecome: { scale: 0.826, x: 0, y: 0 },
     bg: { start: 'v2start', baseline: 'v2pink', blueprint: 'v2phone', build: 'v2build', become: 'v2become' },
     dustX: V2_LEFT.x - 753,
@@ -53,7 +56,7 @@ export const VARIANTS = {
     // (\`gap\` x 100vh, during which the timeline moves between the two holds).
     rail: {
       blocks: [
-        { hold: [0, 1.35], H: 0.9 },       // 01 Baseline: grey -> red, the Estradiol card
+        { hold: [0, 1.35], H: 0.9 },       // 01 Baseline: grey -> red, the ApoB card
         { hold: [1.75, 2.2], H: 0.5 },     //    + the blood sample
         { hold: [3.0, 5.7], H: 1.6 },      // 02 Blueprint: into the phone, the UI scroll, the video
         { hold: [6.1, 7.1], H: 0.8 },      //    + the products
@@ -70,7 +73,9 @@ export const VARIANTS = {
   },
 }
 
+// ?v=1 / ?v=2 in the URL, else the exported file's config, else experience 1
 export function readVariant() {
   const q = new URLSearchParams(location.search).get('v')
-  return VARIANTS[q === '2' ? 2 : 1]
+  const v = q === '2' ? 2 : q === '1' ? 1 : window.__HONE_CONFIG?.v === 2 ? 2 : 1
+  return VARIANTS[v]
 }

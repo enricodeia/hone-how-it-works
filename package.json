@@ -6,12 +6,13 @@
   "description": "Hone 'How it works' sticky scroll experience: a particle man (three.js) that looks at the cursor and scatters on hover, driven through Baseline, Blueprint, Build and Become by one GSAP ScrollTrigger timeline.",
   "scripts": {
     "dev": "vite --port 5230",
-    "build": "vite build",
+    "build": "node tools/build-standalone.mjs && vite build",
     "preview": "vite preview --port 5231",
     "figure": "python3 tools/build_figure.py",
     "shots": "node verify/shots.mjs",
-    "deploy": "BASE_PATH=/hone-how-it-works/ vite build && gh-pages -d dist --nojekyll",
-    "lint:bem": "python3 verify/bem-lint.py"
+    "deploy": "BASE_PATH=/hone-how-it-works/ npm run build && gh-pages -d dist --nojekyll",
+    "lint:bem": "python3 verify/bem-lint.py",
+    "build:standalone": "node tools/build-standalone.mjs"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.3.1",

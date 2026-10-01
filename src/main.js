@@ -8,6 +8,8 @@ import { faEnvelope, faCartShopping, faCheck } from '@fortawesome/pro-light-svg-
 import { FigureScene } from './figure.js'
 import { buildTimeline, T } from './timeline.js'
 import { VARIANTS, readVariant, V2_LEFT } from './variants.js'
+import { createPerfMonitor } from './perf-monitor.js'
+import { createExportPanel } from './export-panel.js'
 
 faConfig.autoAddCss = false
 gsap.registerPlugin(ScrollTrigger)
@@ -18,6 +20,26 @@ const html = document.documentElement
 const stage = root.querySelector('[data-stage]')
 const section = root.querySelector('[data-section]')
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+// ------------------------------------------------------------------ settings
+// URL parameters win (?v=2, ?p=4000, ?stats=1); an exported file carries its own in window.__HONE_CONFIG
+const CONFIG = window.__HONE_CONFIG || {}
+const params = new URLSearchParams(location.search)
+const PARTICLE_KEYS = { z: 8000, x: 4000, c: 3000 }
+const MODES = Object.values(PARTICLE_KEYS)
+const startParticles = MODES.includes(+params.get('p')) ? +params.get('p') : MODES.includes(CONFIG.p) ? CONFIG.p : 8000
+const startStats = params.has('stats') ? params.get('stats') !== '0' : !!CONFIG.stats
+// files under public/, or their inlined data: URI in an exported file
+const asset = (p) => window.__HONE_ASSETS?.[p] ?? `${import.meta.env.BASE_URL}${p}`
+// rewrite one query parameter in place (keeps the experience, the particles and the monitor across reloads)
+function setParam(key, value) {
+  try {
+    const q = new URLSearchParams(location.search)
+    if (value == null) q.delete(key); else q.set(key, value)
+    const qs = q.toString()
+    history.replaceState(null, '', `${location.pathname}${qs ? `?${qs}` : ''}${location.hash}`)
+  } catch { /* file:// in some browsers: the setting simply is not kept across a reload */ }
+}
 
 // ------------------------------------------------------------------ experience (keys 1 / 2)
 const content = readVariant()
@@ -60,13 +82,13 @@ function applyGeometry(g) {
   put(root.querySelector('[data-float="apob"]'), C.apob.left, C.apob.top)
   put(root.querySelector('[data-float="prog"]'), C.prog.left, C.prog.top)
   put(root.querySelector('[data-float="testo"]'), C.testo.left, C.testo.top)
-  put(root.querySelector('[data-float="estra"]'), C.estra.left, C.estra.top)
+  put(root.querySelector('[data-float="peptides"]'), C.peptides.left, C.peptides.top)
   put(root.querySelector('[data-glass]'), C.glass.left, C.glass.top)
   const P = g.panel
   put(root.querySelector('[data-panel]'), P.cx - P.w / 2, P.cy - P.h / 2, P.w, P.h)
 }
 applyGeometry(geom)
-// the marker card is ApoB in experience 1, Estradiol in experience 2
+// the marker card's label and units come from the experience's content
 root.querySelector('[data-apob-label]').textContent = content.apob.label
 root.querySelector('[data-apob-unit]').textContent = content.apob.unitFrom
 root.querySelectorAll('[data-check]').forEach((li) => li.insertAdjacentHTML('afterbegin', icon(faCheck, { classes: ['chapters__check'] }).html.join('')))
@@ -78,8 +100,8 @@ root.querySelector('[data-fa="cart"]').insertAdjacentHTML('afterbegin', icon(faC
 // ------------------------------------------------------------------ boot
 async function boot() {
   const [meta, buf] = await Promise.all([
-    fetch(`${import.meta.env.BASE_URL}data/figure.json`).then((r) => r.json()),
-    fetch(`${import.meta.env.BASE_URL}data/figure.bin`).then((r) => r.arrayBuffer()),
+    fetch(asset('data/figure.json')).then((r) => r.json()),
+    fetch(asset('data/figure.bin')).then((r) => r.arrayBuffer()),
     document.fonts.load('400 49.5px Ashcroft'),
     document.fonts.load('500 18px Ashcroft'),
     document.fonts.load('400 17.5px Friedel'),
@@ -100,6 +122,22 @@ async function boot() {
   })
   scene.setUnit(unit)
   scene.setDustX(geom.dustX)
+
+  // ---------------------------------------------------------------- particle budget + performance monitor
+  const monitor = createPerfMonitor({ root, scene, renderer: scene.renderer })
+  let particles = scene.setCount(startParticles)
+  monitor.setCount(particles)
+  monitor.setVisible(startStats)
+  function setParticles(n) {
+    particles = scene.setCount(n)
+    monitor.setCount(particles)
+    setParam('p', particles === 8000 && !CONFIG.p ? null : String(particles))
+  }
+  function setMonitor(v) {
+    monitor.setVisible(v)
+    setParam('stats', v ? '1' : CONFIG.stats ? '0' : null)
+  }
+  const exportPanel = createExportPanel({ root, getState: () => ({ variant: content.id, particles, stats: monitor.visible }) })
 
   // UI state driven by the timeline, rendered every frame
   const state = {
@@ -260,6 +298,7 @@ async function boot() {
     renderUI(dt)
     pinRail()
     scene.update(dt, gsap.ticker.time)
+    monitor.tick()
   })
 
   // ---------------------------------------------------------------- resize
@@ -291,16 +330,28 @@ async function boot() {
     ScrollTrigger.update()
     return y
   }
-  window.__hone = { tl, st, scene, state, lenis, T, FRAMES, variant: content.id, scrollToTime, frame: (i) => scrollToTime(FRAMES[i]) }
+  window.__hone = { tl, st, scene, state, lenis, T, FRAMES, variant: content.id, scrollToTime, frame: (i) => scrollToTime(FRAMES[i]), setParticles, monitor, exportPanel }
 
-  // keys 1 / 2 switch experiences (a clean reload: each one builds its own layout and scroll length)
+  // ---------------------------------------------------------------- keys
+  //   1 / 2    experience (a clean reload: each one builds its own layout and scroll length)
+  //   Z X C    8,000 / 4,000 / 3,000 particles (live), and shows the performance monitor
+  //   S        performance monitor on / off
+  //   V        export panel (Esc closes it)
+  // Cmd/Ctrl/Alt combinations are left to the browser (copy, paste, undo...), and nothing fires while typing.
+  const typing = (t) => t.closest('textarea, select, [contenteditable], input:not([type="radio"]):not([type="checkbox"])')
   window.addEventListener('keydown', (e) => {
-    if (e.target.closest('input, textarea') || e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return
-    if (e.key === '1' || e.key === '2') {
-      const want = +e.key
+    if (typing(e.target) || e.metaKey || e.ctrlKey || e.altKey) return
+    if (e.key === 'Escape') { exportPanel.close(); return }
+    if (e.shiftKey || e.repeat) return            // Shift + key belongs to the dev tools
+    const k = e.key.toLowerCase()
+    if (k in PARTICLE_KEYS) { setParticles(PARTICLE_KEYS[k]); if (!monitor.visible) setMonitor(true); return }
+    if (k === 's') { setMonitor(!monitor.visible); return }
+    if (k === 'v') { exportPanel.toggle(); return }
+    if (k === '1' || k === '2') {
+      const want = +k
       if (want === content.id) return
       const q = new URLSearchParams(location.search)
-      if (want === 1) q.delete('v'); else q.set('v', '2')
+      if (want === 1 && !CONFIG.v) q.delete('v'); else q.set('v', String(want))
       const qs = q.toString()
       location.href = `${location.pathname}${qs ? `?${qs}` : ''}`
     }

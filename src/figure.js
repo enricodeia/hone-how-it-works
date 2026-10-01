@@ -286,6 +286,14 @@ export class FigureScene {
   /* ---------------------------------------------------------------- figure */
   #buildFigure(data) {
     const { count, stride } = this.meta
+    // Priority order, so that the first N particles are always the best N (see setCount): the dots
+    // extracted from the design first (in random order), then the fill layer by rank, which is the
+    // order the density reveal shows it in. Fill ranked past the reveal is never visible at all.
+    const order = Array.from({ length: count }, (_, i) => i).sort((a, b) => {
+      const ka = data[a * stride + 10], kb = data[b * stride + 10]             // kind: 0 design dot, 1 fill
+      return ka !== kb ? ka - kb : data[a * stride + 9] - data[b * stride + 9]  // then rank
+    })
+    this.total = count
     this.count = count
     this.base = new Float32Array(count * 3)
     this.head = new Float32Array(count)
@@ -298,7 +306,7 @@ export class FigureScene {
     const meta4 = new Float32Array(count * 4)
     const rnd = mulberry(11)
     for (let i = 0; i < count; i++) {
-      const o = i * stride
+      const o = order[i] * stride
       const x = data[o], y = data[o + 1], z = data[o + 2]
       this.base[i * 3] = x; this.base[i * 3 + 1] = y; this.base[i * 3 + 2] = z
       pos[i * 3] = x; pos[i * 3 + 1] = y; pos[i * 3 + 2] = z
@@ -437,6 +445,17 @@ export class FigureScene {
     this.figUniforms.uCamZ.value = this.camZ
     this.dustUniforms.uDpr.value = this.dpr
   }
+  /* ---------------------------------------------------------------- particle budget (keys Z / X / C)
+     Draws, simulates and uploads only the first n particles of the priority order. */
+  setCount(n) {
+    n = Math.max(1, Math.min(this.total, Math.round(n)))
+    const prev = this.count
+    if (n > prev) { this.off.fill(0, prev * 3, n * 3); this.vel.fill(0, prev * 3, n * 3) }   // re-enabled ones start at rest
+    this.count = n
+    this.figure.geometry.setDrawRange(0, n)
+    return n
+  }
+
   setUnit(u) { this.u = u; this.dustUniforms.uU.value = u; this.dustUniforms.uOff.value.set((this.dustX || 0) * u, 0) }
   setDustX(x) { this.dustX = x; this.setUnit(this.u) }
 
@@ -482,7 +501,9 @@ export class FigureScene {
     p.speed *= Math.exp(-dt * 4)
 
     const visible = U.alpha > 0.004
+    const t0 = performance.now()
     if (visible) this.#simulate(dt, r, s)
+    this.simMs = performance.now() - t0                // the CPU part that scales with the particle count
 
     // uniforms
     FU.uTime.value = time
@@ -526,7 +547,9 @@ export class FigureScene {
     }
 
     this.#placeMarkers(r, s)
+    this.gpuTimer?.begin()                             // perf monitor only: a GPU timer query around the draw
     this.renderer.render(this.scene, this.camera)
+    this.gpuTimer?.end()
   }
 
   // rotation shared by particles and markers
@@ -595,6 +618,7 @@ export class FigureScene {
       vel[i3] = vx; vel[i3 + 1] = vy; vel[i3 + 2] = vz
       pos[i3] = rx + ox; pos[i3 + 1] = ry + oy; pos[i3 + 2] = rz + oz
     }
+    this.posAttr.addUpdateRange(0, n * 3)          // upload only the live particles (three clears it after each upload)
     this.posAttr.needsUpdate = true
   }
 
