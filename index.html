@@ -10,8 +10,8 @@
   <link rel="preload" href="/hone-how-it-works/data/figure.bin" as="fetch" crossorigin />
   <!-- inline so it applies before the stylesheet is injected: nothing half-built flashes before boot -->
   <style>.page:not(.page--ready) .frame,.page:not(.page--ready) .backdrop__photo,.page:not(.page--ready) .outro,.page:not(.page--ready) .chapters{visibility:hidden}</style>
-  <script type="module" crossorigin src="/hone-how-it-works/assets/index-D-JZvrjc.js"></script>
-  <link rel="stylesheet" crossorigin href="/hone-how-it-works/assets/index-B5idAQfn.css">
+  <script type="module" crossorigin src="/hone-how-it-works/assets/index-Brd6Rdci.js"></script>
+  <link rel="stylesheet" crossorigin href="/hone-how-it-works/assets/index-DpqZ0tGJ.css">
 </head>
 <!--
   Naming: BEM. Classes are for styling only; everything JavaScript touches is a data-* attribute.
@@ -189,11 +189,10 @@
                 <p class="product__kind">Injection</p>
               </div>
             </div>
-            <div class="frame__float frame__float--estradiol" data-float="estra" data-par="0.9">
-              <div class="card card--product product" data-product="estra">
-                <img class="product__image" src="/hone-how-it-works/assets/estradiol.webp" alt="" />
-                <p class="product__name">Estradiol</p>
-                <p class="product__kind">Cream</p>
+            <div class="frame__float frame__float--peptides" data-float="peptides" data-par="0.9">
+              <div class="card card--product product" data-product="peptides">
+                <img class="product__image" src="/hone-how-it-works/assets/peptides.webp" alt="" />
+                <p class="product__name">Peptides</p>
               </div>
             </div>
           </div>
@@ -292,5 +291,47 @@
       </div>
     </section>
   </main>
+
+  <!-- performance monitor (top right): hidden until Z / X / C or S is pressed, or ?stats=1 -->
+  <aside class="perf-monitor" data-perf hidden aria-label="Performance monitor">
+    <div class="perf-monitor__graphs" data-perf-graphs></div>
+    <dl class="perf-monitor__stats">
+      <div class="perf-monitor__row"><dt class="perf-monitor__key">Particles</dt><dd class="perf-monitor__value" data-perf-count>8,000</dd></div>
+      <div class="perf-monitor__row"><dt class="perf-monitor__key">CPU · simulation</dt><dd class="perf-monitor__value" data-perf-sim>…</dd></div>
+      <div class="perf-monitor__row"><dt class="perf-monitor__key">GPU · draw</dt><dd class="perf-monitor__value" data-perf-gpu>…</dd></div>
+      <div class="perf-monitor__row"><dt class="perf-monitor__key">Draw calls</dt><dd class="perf-monitor__value" data-perf-calls>…</dd></div>
+    </dl>
+    <p class="perf-monitor__modes">
+      <span class="perf-monitor__mode" data-perf-mode="8000"><kbd class="perf-monitor__kbd">Z</kbd> 8,000</span>
+      <span class="perf-monitor__mode" data-perf-mode="4000"><kbd class="perf-monitor__kbd">X</kbd> 4,000</span>
+      <span class="perf-monitor__mode" data-perf-mode="3000"><kbd class="perf-monitor__kbd">C</kbd> 3,000</span>
+    </p>
+  </aside>
+
+  <!-- export panel: only opened with V (V again or Esc closes it) -->
+  <div class="export-panel" data-export hidden role="dialog" aria-labelledby="export-title" tabindex="-1">
+    <form class="export-panel__form" data-export-form>
+      <header class="export-panel__header">
+        <h2 class="export-panel__title" id="export-title">Export</h2>
+        <button class="export-panel__close" type="button" data-export-close aria-label="Close">×</button>
+      </header>
+      <p class="export-panel__lead">One self-contained HTML file: the WebGL canvas, scripts, fonts, images and particle data inlined. It runs offline with a double-click.</p>
+      <fieldset class="export-panel__group">
+        <legend class="export-panel__legend">Experience</legend>
+        <label class="export-panel__option"><input class="export-panel__input export-panel__input--radio" type="radio" name="experience" value="1" /> 1 · Centred</label>
+        <label class="export-panel__option"><input class="export-panel__input export-panel__input--radio" type="radio" name="experience" value="2" /> 2 · Split</label>
+      </fieldset>
+      <fieldset class="export-panel__group">
+        <legend class="export-panel__legend">Particles</legend>
+        <label class="export-panel__option"><input class="export-panel__input export-panel__input--radio" type="radio" name="particles" value="8000" /> 8,000</label>
+        <label class="export-panel__option"><input class="export-panel__input export-panel__input--radio" type="radio" name="particles" value="4000" /> 4,000</label>
+        <label class="export-panel__option"><input class="export-panel__input export-panel__input--radio" type="radio" name="particles" value="3000" /> 3,000</label>
+      </fieldset>
+      <label class="export-panel__check"><input class="export-panel__input" type="checkbox" name="stats" /> Include the performance monitor</label>
+      <button class="export-panel__download" type="submit" data-export-download>Download HTML</button>
+      <p class="export-panel__status" data-export-status role="status"></p>
+    </form>
+  </div>
+
 </body>
 </html>
