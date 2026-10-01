@@ -13,7 +13,7 @@ await p.evaluate(() => { const sc = window.__hone.scene, up = sc.update.bind(sc)
 const cdp = await p.context().newCDPSession(p)
 await cdp.send('Emulation.setCPUThrottlingRate', { rate })
 const rows = []
-for (const n of [8000, 4000, 3000]) {
+for (const n of (process.env.ORDER || '8000,4000,3000,1000').split(',').map(Number)) {
   await p.evaluate((n) => window.__hone.setParticles(n), n); await p.waitForTimeout(800)
   const r = await p.evaluate(async () => {
     const sc = window.__hone.scene; window.__upd.length = 0
@@ -21,14 +21,15 @@ for (const n of [8000, 4000, 3000]) {
     await new Promise((res) => { const t0 = performance.now(); const loop = () => { const now = performance.now(); dts.push(now - last); last = now; sims.push(sc.simMs); if (sc.gpuTimer?.ms != null) gpus.push(sc.gpuTimer.ms); now - t0 < 4000 ? requestAnimationFrame(loop) : res() }; requestAnimationFrame(loop) })
     const avg = (a) => a.reduce((x, y) => x + y, 0) / a.length
     const p95 = (a) => [...a].sort((x, y) => x - y)[Math.floor(a.length * 0.95)]
-    return { sim: avg(sims), update: avg(window.__upd), updateP95: p95(window.__upd), gpu: gpus.length ? avg(gpus) : null, fps: 1000 / avg(dts.slice(5)) }
+    const txt = (q) => document.querySelector(q).textContent
+    return { score: txt('[data-perf-score]'), grade: txt('[data-perf-grade]'), sim: avg(sims), update: avg(window.__upd), updateP95: p95(window.__upd), gpu: gpus.length ? avg(gpus) : null, fps: 1000 / avg(dts.slice(5)) }
   })
   rows.push({ n, ...r })
 }
 await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 })
 await b.close()
 console.log(`CPU throttled ${rate}x · Baseline frame (red, density 0.42)`)
-console.log('particles  sim ms   update ms  update p95  GPU ms   fps')
-for (const r of rows) console.log(`${String(r.n).padStart(9)}  ${r.sim.toFixed(2).padStart(6)}   ${r.update.toFixed(2).padStart(8)}  ${r.updateP95.toFixed(2).padStart(10)}  ${r.gpu == null ? '  n/a' : r.gpu.toFixed(2).padStart(6)}  ${r.fps.toFixed(0).padStart(5)}`)
+console.log('particles  sim ms   update ms  update p95  GPU ms   fps  score')
+for (const r of rows) console.log(`${String(r.n).padStart(9)}  ${r.sim.toFixed(2).padStart(6)}   ${r.update.toFixed(2).padStart(8)}  ${r.updateP95.toFixed(2).padStart(10)}  ${r.gpu == null ? '  n/a' : r.gpu.toFixed(2).padStart(6)}  ${r.fps.toFixed(0).padStart(5)}  ${r.score} ${r.grade}`)
 const base = rows[0]
 for (const r of rows.slice(1)) console.log(`${r.n}: simulation ${(100 * (1 - r.sim / base.sim)).toFixed(0)}% cheaper, whole update ${(100 * (1 - r.update / base.update)).toFixed(0)}% cheaper than 8,000`)

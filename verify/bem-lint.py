@@ -41,6 +41,10 @@ used = set(p.used)
 js = ''.join(open(f).read() for f in glob.glob(f'{ROOT}/src/*.js'))
 js_created = set(re.findall(r"className = '([^']+)'", js)) | set(re.findall(r"classList\.(?:add|toggle)\('([^']+)'(?:, '([^']+)')?", js) and
     [x for t in re.findall(r"classList\.(?:add|toggle)\('([^']+)'(?:,\s*'([^']+)')?", js) for x in t if x]) | set(re.findall(r"classes: \['([^']+)'\]", js))
+# class names declared as plain string literals in JS (e.g. a table of modifier classes)
+js_created |= {c for c in re.findall(r"'([a-z][a-z0-9-]*(?:__[a-z0-9-]+)?--[a-z0-9-]+|[a-z][a-z0-9-]*__[a-z0-9-]+)'", js)}
+# no class name may be assembled at runtime: it could not be searched for, or checked here
+for m in re.finditer(r"`[^`]*(?:__|--)\$\{[^`]*`", js): problems.append(f'6 class name built from a template string: {m.group(0)[:60]}')
 for c in js_created:
     if not NAME.match(c) and not THIRD.match(c): problems.append(f'1 bad JS class name: {c}')
 # CSS

@@ -1,5 +1,5 @@
 /*
-  Export panel (key V). Never shown unless V is pressed; V again or Esc closes it.
+  Export panel (key B). Never shown unless B is pressed; B again or Esc closes it.
 
   Downloads the whole experience as ONE self-contained HTML file: the WebGL canvas, the bundled
   scripts (three.js, GSAP, Lenis), the CSS, the fonts, the images and the particle data are all

@@ -290,23 +290,33 @@
     </section>
   </main>
 
-  <!-- performance monitor (top right): hidden until Z / X / C or S is pressed, or ?stats=1 -->
+  <!-- performance monitor (top right): hidden until Z / X / C / V or S is pressed, or ?stats=1 -->
   <aside class="perf-monitor" data-perf hidden aria-label="Performance monitor">
+    <div class="perf-monitor__score">
+      <span class="perf-monitor__score-value" data-perf-score>–</span>
+      <span class="perf-monitor__score-meta">
+        <span class="perf-monitor__grade" data-perf-grade>measuring</span>
+        <span class="perf-monitor__score-label">score · JS cost + smoothness, 2 s</span>
+      </span>
+    </div>
     <div class="perf-monitor__graphs" data-perf-graphs></div>
     <dl class="perf-monitor__stats">
       <div class="perf-monitor__row"><dt class="perf-monitor__key">Particles</dt><dd class="perf-monitor__value" data-perf-count>8,000</dd></div>
+      <div class="perf-monitor__row"><dt class="perf-monitor__key">JS / budget</dt><dd class="perf-monitor__value" data-perf-cost>…</dd></div>
       <div class="perf-monitor__row"><dt class="perf-monitor__key">CPU · simulation</dt><dd class="perf-monitor__value" data-perf-sim>…</dd></div>
-      <div class="perf-monitor__row"><dt class="perf-monitor__key">GPU · draw</dt><dd class="perf-monitor__value" data-perf-gpu>…</dd></div>
+      <div class="perf-monitor__row"><dt class="perf-monitor__key">GPU · draw · not scored</dt><dd class="perf-monitor__value" data-perf-gpu>…</dd></div>
       <div class="perf-monitor__row"><dt class="perf-monitor__key">Draw calls</dt><dd class="perf-monitor__value" data-perf-calls>…</dd></div>
     </dl>
+    <p class="perf-monitor__note" data-perf-note>…</p>
     <p class="perf-monitor__modes">
       <span class="perf-monitor__mode" data-perf-mode="8000"><kbd class="perf-monitor__kbd">Z</kbd> 8,000</span>
       <span class="perf-monitor__mode" data-perf-mode="4000"><kbd class="perf-monitor__kbd">X</kbd> 4,000</span>
       <span class="perf-monitor__mode" data-perf-mode="3000"><kbd class="perf-monitor__kbd">C</kbd> 3,000</span>
+      <span class="perf-monitor__mode" data-perf-mode="1000"><kbd class="perf-monitor__kbd">V</kbd> 1,000</span>
     </p>
   </aside>
 
-  <!-- export panel: only opened with V (V again or Esc closes it) -->
+  <!-- export panel: only opened with B (B again or Esc closes it) -->
   <div class="export-panel" data-export hidden role="dialog" aria-labelledby="export-title" tabindex="-1">
     <form class="export-panel__form" data-export-form>
       <header class="export-panel__header">
@@ -324,6 +334,7 @@
         <label class="export-panel__option"><input class="export-panel__input export-panel__input--radio" type="radio" name="particles" value="8000" /> 8,000</label>
         <label class="export-panel__option"><input class="export-panel__input export-panel__input--radio" type="radio" name="particles" value="4000" /> 4,000</label>
         <label class="export-panel__option"><input class="export-panel__input export-panel__input--radio" type="radio" name="particles" value="3000" /> 3,000</label>
+        <label class="export-panel__option"><input class="export-panel__input export-panel__input--radio" type="radio" name="particles" value="1000" /> 1,000</label>
       </fieldset>
       <label class="export-panel__check"><input class="export-panel__input" type="checkbox" name="stats" /> Include the performance monitor</label>
       <button class="export-panel__download" type="submit" data-export-download>Download HTML</button>

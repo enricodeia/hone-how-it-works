@@ -426,17 +426,27 @@ img { display: block; }
   box-shadow: 0 6px 24px rgba(0, 0, 0, .18);
 }
 .perf-monitor[hidden] { display: none; }
+.perf-monitor__score { display: flex; align-items: center; gap: 9px; margin: 2px 2px 7px; }
+.perf-monitor__score-value { min-width: 46px; font: 600 30px/1 ui-monospace, 'SF Mono', Menlo, monospace; color: #fff; font-variant-numeric: tabular-nums; }
+.perf-monitor__score-meta { display: grid; gap: 2px; }
+.perf-monitor__grade { justify-self: start; padding: 1px 6px; border-radius: 3px; background: #334; color: #ccd; text-transform: uppercase; letter-spacing: .06em; }
+.perf-monitor__grade--excellent { background: #1f6f3a; color: #d8ffe4; }
+.perf-monitor__grade--good { background: #4f6a1a; color: #f0ffd0; }
+.perf-monitor__grade--fair { background: #7a5a12; color: #fff0c8; }
+.perf-monitor__grade--heavy { background: #7a1f1f; color: #ffd8d8; }
+.perf-monitor__score-label { color: #8aa; }
 .perf-monitor__graphs { display: flex; gap: 2px; }
 .perf-monitor__graph { display: block; width: 80px; height: 48px; }
 .perf-monitor__stats { margin: 7px 2px 0; display: grid; gap: 1px; }
-.perf-monitor__row { display: flex; justify-content: space-between; }
+.perf-monitor__row { display: flex; justify-content: space-between; gap: 8px; white-space: nowrap; }
 .perf-monitor__key { color: #8aa; }
 .perf-monitor__value { margin: 0; color: #fff; font-variant-numeric: tabular-nums; }
+.perf-monitor__note { margin: 7px 2px 0; color: #cde; }
 .perf-monitor__modes { margin: 7px 2px 0; display: flex; justify-content: space-between; color: #8aa; }
 .perf-monitor__mode--active { color: #0ff; }
 .perf-monitor__kbd { display: inline-block; min-width: 15px; padding: 1px 3px; border: 1px solid currentColor; border-radius: 3px; text-align: center; font: inherit; }
 
-/* ================================================================ export-panel: the V panel (bottom right) */
+/* ================================================================ export-panel: the B panel (bottom right) */
 .export-panel {
   position: fixed; right: 16px; bottom: 16px; z-index: 61; width: 300px; padding: 18px 18px 16px;
   background: rgba(255, 255, 255, .96); color: #111; border-radius: 14px;

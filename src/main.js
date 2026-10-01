@@ -25,7 +25,7 @@ const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 // URL parameters win (?v=2, ?p=4000, ?stats=1); an exported file carries its own in window.__HONE_CONFIG
 const CONFIG = window.__HONE_CONFIG || {}
 const params = new URLSearchParams(location.search)
-const PARTICLE_KEYS = { z: 8000, x: 4000, c: 3000 }
+const PARTICLE_KEYS = { z: 8000, x: 4000, c: 3000, v: 1000 }
 const MODES = Object.values(PARTICLE_KEYS)
 const startParticles = MODES.includes(+params.get('p')) ? +params.get('p') : MODES.includes(CONFIG.p) ? CONFIG.p : 8000
 const startStats = params.has('stats') ? params.get('stats') !== '0' : !!CONFIG.stats
@@ -124,7 +124,11 @@ async function boot() {
   scene.setDustX(geom.dustX)
 
   // ---------------------------------------------------------------- particle budget + performance monitor
-  const monitor = createPerfMonitor({ root, scene, renderer: scene.renderer })
+  // what the monitor's note says is on screen: the step, and whether the figure is being simulated
+  const STEPS = [[T.toBaseline, 'Design your health'], [T.toBlueprint, 'Baseline'], [T.toBuild, 'Blueprint'], [T.toBecome, 'Build'], [Infinity, 'Become']]
+  let tlRef = null
+  const describe = () => ({ step: STEPS.find(([until]) => (tlRef ? tlRef.time() : 0) < until)[1], live: scene.U.alpha > 0.004 })
+  const monitor = createPerfMonitor({ root, scene, renderer: scene.renderer, describe })
   let particles = scene.setCount(startParticles)
   monitor.setCount(particles)
   monitor.setVisible(startStats)
@@ -148,6 +152,7 @@ async function boot() {
   }
   const { tl, st, rail, toDrive, length } = buildTimeline({ root, scene, state, geom, content })
   const FRAMES = content.frames
+  tlRef = tl
   section.style.setProperty('--len', length + 1)
 
   // experience 2: block k sits so that it reaches the centre line exactly when its hold begins; during
@@ -298,7 +303,7 @@ async function boot() {
     renderUI(dt)
     pinRail()
     scene.update(dt, gsap.ticker.time)
-    monitor.tick()
+    monitor.tick(performance.now() - now)   // the whole frame callback: UI + simulation + draw submission
   })
 
   // ---------------------------------------------------------------- resize
@@ -334,9 +339,9 @@ async function boot() {
 
   // ---------------------------------------------------------------- keys
   //   1 / 2    experience (a clean reload: each one builds its own layout and scroll length)
-  //   Z X C    8,000 / 4,000 / 3,000 particles (live), and shows the performance monitor
+  //   Z X C V  8,000 / 4,000 / 3,000 / 1,000 particles (live), and shows the performance monitor
   //   S        performance monitor on / off
-  //   V        export panel (Esc closes it)
+  //   B        export panel (Esc closes it)
   // Cmd/Ctrl/Alt combinations are left to the browser (copy, paste, undo...), and nothing fires while typing.
   const typing = (t) => t.closest('textarea, select, [contenteditable], input:not([type="radio"]):not([type="checkbox"])')
   window.addEventListener('keydown', (e) => {
@@ -346,7 +351,7 @@ async function boot() {
     const k = e.key.toLowerCase()
     if (k in PARTICLE_KEYS) { setParticles(PARTICLE_KEYS[k]); if (!monitor.visible) setMonitor(true); return }
     if (k === 's') { setMonitor(!monitor.visible); return }
-    if (k === 'v') { exportPanel.toggle(); return }
+    if (k === 'b') { exportPanel.toggle(); return }
     if (k === '1' || k === '2') {
       const want = +k
       if (want === content.id) return

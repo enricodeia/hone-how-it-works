@@ -29,19 +29,26 @@ npm run figure     # rebuild the particle man from source-assets/01.png
 | Key | |
 |---|---|
 | `1` / `2` | experience 1 (centred) / 2 (split) |
-| `Z` / `X` / `C` | 8,000 / 4,000 / 3,000 particles, live (kept in the URL as `?p=`) |
-| `S` | performance monitor (top right): FPS, CPU ms of the particle simulation, GPU ms of the draw (WebGL2 timer query), draw calls. Also `?stats=1` |
-| `V` | export panel (Esc closes): downloads the whole experience as one self-contained HTML file |
+| `Z` / `X` / `C` / `V` | 8,000 / 4,000 / 3,000 / 1,000 particles, live (kept in the URL as `?p=`) |
+| `S` | performance monitor (top right): a live 0–100 score, FPS, CPU ms of the particle simulation, GPU ms of the draw (WebGL2 timer query), draw calls, and a note on what is on screen. Also `?stats=1` |
+| `B` | export panel (Esc closes): downloads the whole experience as one self-contained HTML file |
 
 The particles are stored in priority order (the dots extracted from the design first, then the fill
 layer in the order the density reveal shows it), so a budget of N simply draws, simulates and uploads
 the first N. 8,000 looks identical to the full set (the fill past that is never revealed). Measured with
-the CPU throttled 6x (`node verify/perf-bench.mjs 6`): simulation 0.26 / 0.16 / 0.09 ms, whole per-frame
-update 0.71 / 0.46 / 0.38 ms, GPU draw unchanged at 0.19 ms.
+the CPU throttled 6x (`node verify/perf-bench.mjs 6`): simulation 0.39 / 0.17 / 0.15 / 0.06 ms, whole per-frame
+update 1.05 / 0.60 / 0.66 / 0.44 ms.
+
+**Score.** 70 points for load: the median JS cost of the effect per frame against a budget of a fifth of
+the display's frame (3.3 ms at 60 Hz, 1.7 ms at 120 Hz); 30 for smoothness: real FPS against the refresh
+rate, minus dropped frames. Over the last 2 s. The GPU time is shown but not scored: on Apple GPUs it swings
+0.5–1.7 ms between runs of the same count (power states), while the CPU numbers track the count. Measured
+(`node verify/perf-bench.mjs`): 8,000 / 4,000 / 3,000 / 1,000 score 85–87 / 90 / 92 / 91–92 on an M-series Mac,
+and 73 / 83 / 79 / 96 with the CPU throttled 6x.
 
 **Export.** `npm run build` first runs `tools/build-standalone.mjs`, which builds the site with a relative
 base and inlines the JS, CSS, fonts, images and particle data into `public/export/hone-how-it-works.html`
-(about 2.4 MB, no network needed). The V panel downloads that file with the chosen settings stamped in
+(about 2.4 MB, no network needed). The B panel downloads that file with the chosen settings stamped in
 as `window.__HONE_CONFIG`. In dev, run `npm run build:standalone` once so the panel has a file to serve.
 
 Dev keys: `Shift`+`1`–`9` jump to each reference frame of the current experience, `O` toggles the
